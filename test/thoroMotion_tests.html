@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>thoroMotion Tests</title>
+	<meta name="generator" content="TextMate http://macromates.com/">
+	<meta name="author" content="Robin Howlett">
+	<!-- Date: 2010-04-02 -->
+	<style type="text/css">
+	
+		/* margin and padding on body element can introduce errors in determining
+		 * element position and are not recommended; we turn them off as a foundation for YUI
+		 * CSS treatments.
+		 */
+		body {
+			margin:0;
+			padding:0;
+		}
+		
+	</style>
+	
+	<link type="text/css" rel="stylesheet" href="http://yui.yahooapis.com/3.1.0/build/cssfonts/fonts-min.css" /> 
+	<script type="text/javascript" src="http://yui.yahooapis.com/3.1.0/build/yui/yui-min.js"></script>
+	
+	<!--begin custom header content for this example--> 
+	<style type="text/css"> 
+	#testLogger {
+	    margin-bottom: 1em;
+	}
+
+	#testLogger .yui3-console .yui3-console-title {
+	    border: 0 none;
+	    color: #000;
+	    font-size: 13px;
+	    font-weight: bold;
+	    margin: 0;
+	    text-transform: none;
+	}
+	#testLogger .yui3-console .yui3-console-entry-meta {
+	    margin: 0;
+	}
+
+	.yui3-skin-sam .yui3-console-entry-pass .yui3-console-entry-cat {
+	    background: #070;
+	    color: #fff;
+	}
+	</style> 
+
+	<!--end custom header content for this example-->
+</head>
+<body class="yui3-skin-sam  yui-skin-sam">
+	
+	<!--BEGIN SOURCE CODE FOR EXAMPLE =============================== --> 
+	
+	<div id="testLogger"></div>
+	
+	<script type="text/javascript">
+		// Create new YUI instance, and populate it with the required modules
+		YUI().use("node", "console", "test", function(Y) {
+			
+			Y.namespace("thorobase.thoromotion.test");
+			
+			Y.thorobase.thoromotion.test.ThoroDataTestCase = new Y.Test.Case({
+				
+				// name of the test case
+				name: "thoroData Tests",
+				
+				//---------------------------------------------------------------------
+		        // setUp and tearDown methods - optional
+		        //---------------------------------------------------------------------
+		
+				/*
+		         * Sets up data that is needed by each test.
+		         */
+		        setUp : function () {
+		            this.data = {
+			
+		            };
+		        },
+		
+		        /*
+		         * Cleans up everything that was created by setUp().
+		         */
+		        tearDown : function () {
+		            delete this.data;
+		        },
+				
+				//---------------------------------------------------------------------
+		        // Test methods - names must begin with "test"
+		        //---------------------------------------------------------------------
+		
+				testRaceCard : function () {
+		            var Assert = Y.Assert;         
+		        }
+		
+			});
+			
+			Y.thorobase.thoromotion.test.ThoroMotionSuite = new Y.Test.Suite("thoroMotion Suite");
+			Y.thorobase.thoromotion.test.ThoroMotionSuite.add(Y.thorobase.thoromotion.test.ThoroDataTestCase);
+			
+			// create the console
+			var runner = new Y.Console({
+				width: '800px',
+				height: '600px',
+				newestOnTop: false,
+				style: 'block' // to anchor in the example content
+			});
+			
+			runner.render('#testLogger');
+			
+			Y.Test.Runner.add(Y.thorobase.thoromotion.test.ThoroMotionSuite);
+			
+			// run the tests
+			Y.Test.Runner.run();
+			
+		});
+	</script> 
+
+	<!--END SOURCE CODE FOR EXAMPLE =============================== -->
+
+</body>
+</html>
