@@ -19,8 +19,8 @@ thorobase.ThoroData = {
 		// override this for data supplier specific parsing
 	},
 	
-	/* Parses the details of one race on a Race Card into a Race
-	 *
+	/* 
+	 * Parses the details of one race on a Race Card into a Race
 	 */
 	parseRaces: function (/* google.visualization.DataTable */ data, /* thorobase.RaceDay */ raceDay) {
 		// override this for data supplier specific parsing
@@ -62,6 +62,104 @@ thorobase.ThoroData = {
 		// override this for data supplier specific thoroMotion visualization
 	}
 	
+};
+
+thorobase.RaceCard = {
+	track: null,
+	raceDate: {
+		year: null,
+		month: null,
+		day: null
+	},
+	races: null,
+	getRaceDateCYMD: function () {
+		return +(this.raceDate.year + this.raceDate.month + this.raceDate.day);
+	}
+};
+
+thorobase.Race = {
+	raceNumber: null,
+	raceStartTime: null,
+	distance: {
+		unit: null,
+		value: null,
+		isAbout: null
+	},
+	surface: {
+		code: null,
+		desc: null,
+		condition: null
+	},
+	raceType: {
+		code: null,
+		desc: null,
+		classRaceName: null
+	},
+	raceGrade: {
+		code: null,
+		desc: null
+	},
+	purse: {
+		unit: null,
+		total: null
+	},
+	ageSexRestr: {
+		code: null,
+		desc: null,
+		shortDesc: null 
+	},
+	isStatebred: null,
+	fractions: null,
+	splits: null,
+	winTime: function () {
+		return (this.fractions) ? this.fractions[(this.fractions.length - 1)] : null;
+	},
+	performances: null
+};
+
+thorobase.Performance = {
+	pp: null,
+	isEntryCoupled: null,
+	horseName: null,
+	countryCode: null,
+	yearOfBirth: null,
+	weight: null,
+	claimingPrice: null,
+	callPositions: null,
+	didNotFinish: null,
+	beatenLengths: null,
+	pocSplits: null,
+	totalSplits: null,
+	odds: null,
+	medication: {
+		code: null,
+		desc: null
+	},
+	isBlinkered: null,
+	trainerName: null,
+	jockeyName: null,
+	ownerName: null,
+	lastRace: {
+		raceDate: {
+			year: null,
+			month: null,
+			day: null
+		},
+		track: null,
+		raceNumber: null,
+		raceSession: null,
+		pp: null
+	},
+	wide: null,
+	getLastRaceDateCYMD: function () {
+		return +(this.lastRace.raceDate.year + this.lastRace.raceDate.month + this.lastRace.raceDate.day);
+	},
+	finishBeatenLengths: function () {
+		return (this.beatenLengths) ? this.beatenLengths[(this.beatenLengths.length - 1)] : null;
+	},
+	finishPosition: function () {
+		return (this.callPositions) ? this.callPositions[(this.callPositions.length - 1)] : null;
+	}
 };
 
 // Equibase's static data

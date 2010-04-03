@@ -7,7 +7,7 @@
 	<title>thoroMotion Tests</title>
 	<meta name="generator" content="TextMate http://macromates.com/">
 	<meta name="author" content="Robin Howlett">
-	<!-- Date: 2010-04-02 -->
+
 	<style type="text/css">
 	
 		/* margin and padding on body element can introduce errors in determining
@@ -21,31 +21,40 @@
 		
 	</style>
 	
+	<!-- import YUI 3 Test -->
 	<link type="text/css" rel="stylesheet" href="http://yui.yahooapis.com/3.1.0/build/cssfonts/fonts-min.css" /> 
 	<script type="text/javascript" src="http://yui.yahooapis.com/3.1.0/build/yui/yui-min.js"></script>
 	
+	<!-- auto-load Google AJAX API, the Google Visualization API, and the Motion Chart package -->
+	<script type="text/javascript" src="http://www.google.com/jsapi?autoload=%7B%22modules%22%3A%5B%7B%22name%22%3A%22visualization%22%2C%22version%22%3A%221%22%2C%22packages%22%3A%5B%22motionchart%22%5D%7D%5D%7D"></script>
+	
+	<!-- import thoroMotion, provider scripts and sample data -->
+	<script type="text/javascript" src="../src/thoroMotion.js"></script>
+	<script type="text/javascript" src="../src/providers/brisImportChartData.js"></script>
+	<script type="text/javascript" src="sample_brisImportChartData_racedata.js"></script>
+	
 	<!--begin custom header content for this example--> 
 	<style type="text/css"> 
-	#testLogger {
-	    margin-bottom: 1em;
-	}
+		#testLogger {
+		    margin-bottom: 1em;
+		}
 
-	#testLogger .yui3-console .yui3-console-title {
-	    border: 0 none;
-	    color: #000;
-	    font-size: 13px;
-	    font-weight: bold;
-	    margin: 0;
-	    text-transform: none;
-	}
-	#testLogger .yui3-console .yui3-console-entry-meta {
-	    margin: 0;
-	}
+		#testLogger .yui3-console .yui3-console-title {
+		    border: 0 none;
+		    color: #000;
+		    font-size: 13px;
+		    font-weight: bold;
+		    margin: 0;
+		    text-transform: none;
+		}
+		#testLogger .yui3-console .yui3-console-entry-meta {
+		    margin: 0;
+		}
 
-	.yui3-skin-sam .yui3-console-entry-pass .yui3-console-entry-cat {
-	    background: #070;
-	    color: #fff;
-	}
+		.yui3-skin-sam .yui3-console-entry-pass .yui3-console-entry-cat {
+		    background: #070;
+		    color: #fff;
+		}
 	</style> 
 
 	<!--end custom header content for this example-->
@@ -57,49 +66,65 @@
 	<div id="testLogger"></div>
 	
 	<script type="text/javascript">
-		// Create new YUI instance, and populate it with the required modules
-		YUI().use("node", "console", "test", function(Y) {
-			
-			Y.namespace("thorobase.thoromotion.test");
-			
-			Y.thorobase.thoromotion.test.ThoroDataTestCase = new Y.Test.Case({
-				
-				// name of the test case
-				name: "thoroData Tests",
-				
-				//---------------------------------------------------------------------
-		        // setUp and tearDown methods - optional
-		        //---------------------------------------------------------------------
+		var Y;
 		
+		Y = YUI({ debug: true });
+
+		// Create new YUI instance, and populate it with the required modules
+		Y.use("node", "console", "test", function(Y) {
+		
+			Y.namespace("thorobase.thoromotion.test");
+		
+			Y.thorobase.thoromotion.test.BRISImportChartDataTestCase = new Y.Test.Case({
+			
+				// name of the test case
+				name: "BRISImportChartData Tests",
+			
+				//---------------------------------------------------------------------
+		        // setUp and tearDown methods
+		        //---------------------------------------------------------------------
+	
 				/*
 		         * Sets up data that is needed by each test.
 		         */
 		        setUp : function () {
-		            this.data = {
-			
-		            };
+		            this.data = new google.visualization.DataTable(brisImportChartDataSample, 0.6);
 		        },
-		
+	
 		        /*
 		         * Cleans up everything that was created by setUp().
 		         */
 		        tearDown : function () {
 		            delete this.data;
 		        },
-				
+			
 				//---------------------------------------------------------------------
-		        // Test methods - names must begin with "test"
+		        // Test methods
 		        //---------------------------------------------------------------------
-		
-				testRaceCard : function () {
-		            var Assert = Y.Assert;         
+	
+				testParseRaceCards : function () {
+		            var Assert = Y.Assert, bris, raceCards, raceCard;
+	
+					bris = Object.create(thorobase.BRISImportChartData);
+				
+					raceCards = bris.parseRaceCards(this.data);
+				
+					//Assert.isObject(raceCards, "raceCards should be an Object");
+					console.log("is an object");
+					Assert.isArray(raceCards, "raceCards should be an Array");
+					Assert.areEqual(1, raceCards.length, "raceCards should be an array of length = 1");
+				
+					raceCard = raceCards[0];
+				
+					Assert.isString(raceCard.track, "raceCard.track should be a String");
+					Assert.areEqual(raceCard.track, "CD ", "raceCard.track should be 'CD '");
 		        }
-		
+	
 			});
-			
+		
 			Y.thorobase.thoromotion.test.ThoroMotionSuite = new Y.Test.Suite("thoroMotion Suite");
-			Y.thorobase.thoromotion.test.ThoroMotionSuite.add(Y.thorobase.thoromotion.test.ThoroDataTestCase);
-			
+			Y.thorobase.thoromotion.test.ThoroMotionSuite.add(Y.thorobase.thoromotion.test.BRISImportChartDataTestCase);
+		
 			// create the console
 			var runner = new Y.Console({
 				width: '800px',
@@ -107,15 +132,16 @@
 				newestOnTop: false,
 				style: 'block' // to anchor in the example content
 			});
-			
+		
 			runner.render('#testLogger');
-			
+		
 			Y.Test.Runner.add(Y.thorobase.thoromotion.test.ThoroMotionSuite);
-			
+		
 			// run the tests
 			Y.Test.Runner.run();
-			
+		
 		});
+		
 	</script> 
 
 	<!--END SOURCE CODE FOR EXAMPLE =============================== -->
