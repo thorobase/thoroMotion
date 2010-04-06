@@ -78,6 +78,12 @@ thorobase.RaceCard = {
 };
 
 thorobase.Race = {
+	raceTrack: null,
+	raceRunDate: {
+		year: null,
+		month: null,
+		day: null
+	},
 	raceNumber: null,
 	raceStartTime: null,
 	distance: {
@@ -110,9 +116,11 @@ thorobase.Race = {
 	},
 	isStatebred: null,
 	fractions: null,
-	splits: null,
 	winTime: function () {
-		return (this.fractions) ? this.fractions[(this.fractions.length - 1)] : null;
+		return (this.fractions) ? this.fractions[(this.fractions.length - 1)].pofTime : null;
+	},
+	getRaceRunDateCYMD: function () {
+		return +(this.raceRunDate.year + this.raceRunDate.month + this.raceRunDate.day);
 	},
 	performances: null
 };
@@ -140,12 +148,12 @@ thorobase.Performance = {
 	jockeyName: null,
 	ownerName: null,
 	lastRace: {
-		raceDate: {
+		raceRunDate: {
 			year: null,
 			month: null,
 			day: null
 		},
-		track: null,
+		raceTrack: null,
 		raceNumber: null,
 		raceSession: null,
 		pp: null
@@ -166,14 +174,20 @@ thorobase.Performance = {
 thorobase.Equibase = {
 	
 	// Equibase Points of Call for Various Race Distances (in yards)
+	// * = extrapolated distance from Points of Fractions
 	pointsOfCall: {
 	//   dist:  [start, 1st,  2nd,  3rd, stretch, finish]	// distance equiv
+		"220":  [    ,     ,     ,     ,  110,    220],		// 1 furlong		(1 		furlong)*
 		"440":  [  55,     ,     ,     ,  247.5,  440],		// 2 furlongs		(2 		furlongs)
+		"550":  [  55,     ,     ,     ,  302.5,  550],		// 2 1/2 furlongs	(2.5	furlongs)*
 		"660":  [  55,     ,     ,     ,  357.5,  660],		// 3 furlongs		(3 		furlongs)
 		"715":  [  55,  440,     ,     ,  577.5,  715],		// 3 1/4 furlongs	(3.25 	furlongs)
+		"770":  [  55,  440,     ,     ,  605,    770],		// 3 1/2 furlongs	(3.5	furlongs)*
+		"825":  [  55,  440,     ,     ,  632.5,  825],		// 3 3/4 furlongs	(3.75 	furlongs)*
 		"880":  [  55,  440,     ,     ,  660,    880],		// 4 furlongs		(4 		furlongs)
 		"990":  [  55,  440,     ,     ,  715,    990],		// 4 1/2 furlongs	(4.5 	furlongs)
 		"1100": [  55,  550,  660,     ,  880,   1100],		// 5 furlongs		(5 		furlongs)
+		"1155": [  55,  550,  660,     ,  907.5, 1155],		// 5 1/4 furlongs	(5.25	furlongs)*
 		"1210": [  55,  440,  660,     ,  935,   1210],		// 5 1/2 furlongs	(5.5 	furlongs)
 		"1320": [  55,  440,  880,     , 1100,   1320],		// 6 furlongs		(6 		furlongs)
 		"1430": [  55,  440,  880,     , 1155,   1430],		// 6 1/2 furlongs	(6.5 	furlongs)
@@ -207,6 +221,56 @@ thorobase.Equibase = {
 		"3960": [ 880, 1760, 2640, 3520, 3740,   3960],		// 2 1/4 miles		(18		furlongs)
 		"4070": [ 880, 1760, 2640, 3520, 3795,   4070],		// 2 5/16 miles		(18.5	furlongs)
 		"5280": [1760, 2640, 3520, 4400, 4840,   5280]		// 3 miles			(24 	furlongs)
+	},
+	
+	// Equibase Points of Fractional Times for Various Race Distances (in yards)
+	// * = extrapolated distance from Points of Call
+	pointsOfFractions: {
+	//   dist:  [frac1, frac2, frac3, frac4, frac5, finish]	// distance equiv
+		"220":  [    ,     ,     ,     ,     ,    220],		// 1 furlong		(1 		furlong)
+		"440":  [    ,     ,     ,     ,     ,    440],		// 2 furlongs		(2 		furlongs)
+		"550":  [ 440,     ,     ,     ,     ,    550],		// 2 1/2 furlongs	(2.5	furlongs)
+		"660":  [ 440,     ,     ,     ,     ,    660],		// 3 furlongs		(3 		furlongs)
+		"715":  [ 440,     ,     ,     ,     ,    715],		// 3 1/4 furlongs	(3.25 	furlongs)
+		"770":  [ 440,  660,     ,     ,     ,    770],		// 3 1/2 furlongs	(3.5	furlongs)
+		"825":  [ 440,     ,     ,     ,     ,    825],		// 3 3/4 furlongs	(3.75 	furlongs)
+		"880":  [ 440,     ,     ,     ,     ,    880],		// 4 furlongs		(4 		furlongs)
+		"990":  [ 440,  880,     ,     ,     ,    990],		// 4 1/2 furlongs	(4.5 	furlongs)
+		"1100": [ 440,  880,     ,     ,     ,   1100],		// 5 furlongs		(5 		furlongs)
+		"1155": [ 440,  880,     ,     ,     ,   1155],		// 5 1/4 furlongs	(5.25	furlongs)
+		"1210": [ 440,  880, 1100,     ,     ,   1210],		// 5 1/2 furlongs	(5.5 	furlongs)
+		"1320": [ 440,  880, 1100,     ,     ,   1320],		// 6 furlongs		(6 		furlongs)
+		"1430": [ 440,  880, 1320,     ,     ,   1430],		// 6 1/2 furlongs	(6.5 	furlongs)
+		"1540": [ 440,  880, 1320,     ,     ,   1540],		// 7 furlongs		(7 		furlongs)
+		"1650": [ 440,  880, 1320,     ,     ,   1650],		// 7 1/2 furlongs	(7.5 	furlongs)
+		"1760": [ 440,  880, 1320, 1540,     ,   1760],		// 1 mile			(8 		furlongs)
+		"1790": [ 440,  880, 1320, 1540,     ,   1790],		// 1 mile 30 yards	(8.14 	furlongs)*
+		"1800": [ 440,  880, 1320, 1760,     ,   1800],		// 1 mile 40 yards	(8.18 	furlongs)
+		"1830": [ 440,  880, 1320, 1760,     ,   1830],		// 1 mile 70 yards	(8.32 	furlongs)
+		"1870": [ 440,  880, 1320, 1760,     ,   1870],		// 1 1/16 miles 	(8.5 	furlongs)
+		"1980": [ 440,  880, 1320, 1760,     ,   1980],		// 1 1/8 miles		(9 		furlongs)
+		"2090": [ 440,  880, 1320, 1760,     ,   2090],		// 1 3/16 miles 	(9.5 	furlongs)
+		"2200": [ 440,  880, 1320, 1760,     ,   2200],		// 1 1/4 miles 		(10 	furlongs)
+		"2310": [ 440,  880, 1320, 1760,     ,   2310],		// 1 5/16 miles 	(10.5 	furlongs)
+		"2420": [ 440,  880, 1320, 1760, 2200,   2420],		// 1 3/8 miles 		(11 	furlongs)
+		"2530": [ 440,  880, 1320, 1760, 2200,   2530],		// 1 7/16 miles 	(11.5 	furlongs)
+		"2640": [ 440,  880, 1320, 1760, 2200,   2640],		// 1 1/2 miles 		(12 	furlongs)
+		"2750": [ 440,  880, 1320, 1760, 2200,   2750],		// 1 9/16 miles 	(12.5 	furlongs)
+		"2860": [ 880, 1320, 1760, 2200, 2640,   2860],		// 1 5/8 miles 		(13 	furlongs)
+		"2970": [ 880, 1320, 1760, 2200, 2640,   2970],		// 1 11/16 miles 	(13.5 	furlongs)
+		"3080": [ 880, 1320, 1760, 2200, 2640,   3080],		// 1 3/4 miles 		(14 	furlongs)
+		"3190": [ 880, 1760, 2200, 2640, 3080,   3190],		// 1 13/16 miles	(14.5	furlongs)
+		"3300": [ 880, 1760, 2200, 2640, 3080,   3300],		// 1 7/8 miles		(15		furlongs)
+		"3410": [ 880, 1760, 2200, 2640, 3080,   3410],		// 1 15/16 miles	(15.5	furlongs)
+		"3520": [ 880, 1760, 2200, 2640, 3080,   3520],		// 2 miles			(16		furlongs)
+		"3560": [ 880, 1760, 2640, 3080, 3520,   3560],		// 2 miles 40 yards	(16.18	furlongs)
+		"3590": [ 880, 1760, 2640, 3080, 3520,   3590],		// 2 miles 70 yards (16.32	furlongs)
+		"3630": [ 880, 1760, 2640, 3080, 3520,   3630], 	// 2 1/16 miles		(16.5	furlongs)
+		"3740": [ 880, 1760, 2640, 3080, 3520,   3740],		// 2 1/8 miles		(17		furlongs)
+		"3850": [ 880, 1760, 2640, 3080, 3520,   3850],		// 2 3/16 miles		(17.5	furlongs)
+		"3960": [ 880, 1760, 2640, 3080, 3520,   3960],		// 2 1/4 miles		(18		furlongs)*
+		"4070": [ 880, 1760, 2640, 3080, 3520,   4070],		// 2 5/16 miles		(18.5	furlongs)*
+		"5280": [ 880, 1760, 2640, 3080, 3520,   5280]		// 3 miles			(24 	furlongs)*
 	}
 	
 };

@@ -87,14 +87,14 @@
 				/*
 		         * Sets up data that is needed by each test.
 		         */
-		        setUp : function () {
+		        setUp: function () {
 		            this.data = new google.visualization.DataTable(brisImportChartDataSample, 0.6);
 		        },
 	
 		        /*
 		         * Cleans up everything that was created by setUp().
 		         */
-		        tearDown : function () {
+		        tearDown: function () {
 		            delete this.data;
 		        },
 			
@@ -102,23 +102,144 @@
 		        // Test methods
 		        //---------------------------------------------------------------------
 	
-				testParseRaceCards : function () {
+				testParseRaceCards: function () {
 		            var Assert = Y.Assert, bris, raceCards, raceCard;
 	
 					bris = Object.create(thorobase.BRISImportChartData);
 				
 					raceCards = bris.parseRaceCards(this.data);
 				
-					//Assert.isObject(raceCards, "raceCards should be an Object");
-					console.log("is an object");
+					Assert.isObject(raceCards, "raceCards should be an Object");
 					Assert.isArray(raceCards, "raceCards should be an Array");
 					Assert.areEqual(1, raceCards.length, "raceCards should be an array of length = 1");
 				
 					raceCard = raceCards[0];
 				
 					Assert.isString(raceCard.track, "raceCard.track should be a String");
-					Assert.areEqual(raceCard.track, "CD ", "raceCard.track should be 'CD '");
-		        }
+					Assert.areEqual("CD ", raceCard.track, "raceCard.track should be 'CD '");
+					
+					Assert.isString(raceCard.raceDate.year, "raceCard.raceDate.year should be a String");
+					Assert.areEqual("2000", raceCard.raceDate.year, "raceCard.raceDate.year should be '2000'");
+					
+					Assert.isString(raceCard.raceDate.month, "raceCard.raceDate.month should be a String");
+					Assert.areEqual("11", raceCard.raceDate.month, "raceCard.raceDate.month should be '11'");
+					
+					Assert.isString(raceCard.raceDate.day, "raceCard.raceDate.day should be a String");
+					Assert.areEqual("25", raceCard.raceDate.day, "raceCard.raceDate.day should be '25'");
+					
+					Assert.isFunction(raceCard.getRaceDateCYMD, "raceCard.getRaceDateCYMD should be a function");
+					Assert.isNumber(raceCard.getRaceDateCYMD(), "raceCard.getRaceDateCYMD() should return a Number");
+					Assert.areEqual(20001125, raceCard.getRaceDateCYMD(), "raceCard.getRaceDateCYMD() should return 20001125");
+					
+					Assert.isNull(raceCard.races, "raceCard.races should be null");
+		        },
+		
+				testParseRaces: function () {
+					var Assert = Y.Assert, bris, raceCards, raceCard, races, race0, race1, race2, race3, race4;
+					
+					bris = Object.create(thorobase.BRISImportChartData);				
+					raceCards = bris.parseRaceCards(this.data);
+					raceCard = raceCards[0];
+					races = bris.parseRaces(this.data, raceCard);
+					
+					Assert.isArray(races, "races should be an Array");
+					Assert.areEqual(12, races.length, "races.length should be 12");
+					
+					race0 = races[0];
+					
+					Assert.isString(race0.raceTrack, "race0.raceTrack should be a String");
+					Assert.areEqual("CD ", race0.raceTrack, "race0.raceTrack should be 'CD '");
+					
+					Assert.isString(race0.raceRunDate.year, "race0.raceRunDate.year should be a String");
+					Assert.areEqual("2000", race0.raceRunDate.year, "race0.raceRunDate.year should be '2000'");
+					
+					Assert.isString(race0.raceRunDate.month, "race0.raceRunDate.month should be a String");
+					Assert.areEqual("11", race0.raceRunDate.month, "race0.raceRunDate.month should be '11'");
+					
+					Assert.isString(race0.raceRunDate.day, "race0.raceRunDate.day should be a String");
+					Assert.areEqual("25", race0.raceRunDate.day, "race0.raceRunDate.day should be '25'");
+					
+					Assert.isFunction(race0.getRaceRunDateCYMD, "race0.getRaceRunDateCYMD should be a function");
+					Assert.isNumber(race0.getRaceRunDateCYMD(), "race0.getRaceRunDateCYMD() should return a Number");
+					Assert.areEqual(20001125, race0.getRaceRunDateCYMD(), "race0.getRaceRunDateCYMD() should return 20001125");
+					
+					Assert.isNumber(race0.raceNumber, "race0.raceNumber should be a Number");
+					Assert.areEqual(1, race0.raceNumber, "race0.raceNumber should be 1");
+					
+					Assert.isNull(race0.raceStartTime, "race0.raceStartTime should be null");
+					
+					Assert.isObject(race0.distance, "race0.distance should be a Object");
+					Assert.areEqual("yards", race0.distance.unit, "race0.distance.unit should be 'yards'");
+					Assert.areEqual(3520, race0.distance.value, "race0.distance.value should be 3520");
+					Assert.isFalse(race0.distance.isAbout, "race0.distance.isAbout should be false");
+					
+					race1 = races[1];
+					
+					Assert.isObject(race1.surface, "race1.surface should be a Object");
+					Assert.areEqual("D", race1.surface.code, "race1.surface.code should be 'D'");
+					Assert.areEqual("SY", race1.surface.condition, "race1.surface.condition should be 'SY'");
+					Assert.areEqual("Dirt", race1.surface.desc, "race1.surface.desc should be 'Dirt'");
+					
+					Assert.isObject(race1.raceType, "race1.raceType should be a Object");
+					Assert.areEqual("Md 30000", race1.raceType.classRaceName, "race1.raceType.classRaceName should be 'Md 30000'");
+					Assert.areEqual("M", race1.raceType.code, "race1.raceType.code should be 'M'");
+					Assert.areEqual("Mdn Claiming", race1.raceType.desc, "race1.raceType.desc should be 'Mdn Claiming'");
+					
+					Assert.isObject(race1.raceGrade, "race1.raceGrade should be a Object");
+					Assert.areEqual(0, race1.raceGrade.code, "race1.raceGrade.code should be 0");
+					Assert.areEqual("Not Graded", race1.raceGrade.desc, "race1.raceGrade.desc should be 'Not Graded'");
+					
+					race2 = races[2];
+					
+					Assert.isObject(race2.purse, "race2.purse should be a Object");
+					Assert.areEqual("USD", race2.purse.unit, "race2.purse.total should be 'USD'");
+					Assert.areEqual(16500, race2.purse.total, "race2.purse.total should be 16500");
+					
+					Assert.isObject(race2.ageSexRestr, "race2.ageSexRestr should be a Object");
+					Assert.areEqual("BUN", race2.ageSexRestr.code, "race2.ageSexRestr.code should be 'BUN'");
+					Assert.isArray(race2.ageSexRestr.desc, "race2.ageSexRestr.desc should be an Array");
+					Assert.areEqual("3 year olds", race2.ageSexRestr.desc[0], "race2.ageSexRestr.desc[0] should be '3 year olds'");
+					Assert.areEqual("That age and up", race2.ageSexRestr.desc[1], "race2.ageSexRestr.desc[1] should be 'That age and up'");
+					Assert.areEqual("No sex restrictions", race2.ageSexRestr.desc[2], "race2.ageSexRestr.desc[2] should be 'No sex restrictions'");
+					Assert.areEqual("3yo+", race2.ageSexRestr.shortDesc, "race2.ageSexRestr.shortDesc should be '3yo+'");
+					
+					Assert.isBoolean(race2.isStatebred, "race2.isStatebred should be Boolean");
+					Assert.isFalse(race2.isStatebred, "race2.isStatebred should be false");
+					
+					race3 = races[3];
+					
+					Assert.isArray(race3.fractions, "race3.fractions should be an Array");
+					Assert.areEqual(4, race3.fractions.length, "race3.fractions.length should be 6");
+					Assert.isObject(race3.fractions[0], "race3.fractions[0] should be an Object");
+					Assert.areEqual(440, race3.fractions[0].pofDist, "race3.fractions[0].pofDist should be 440");
+					Assert.areEqual(22.91, race3.fractions[0].pofTime, "race3.fractions[0].pofTime should be 22.91");
+					Assert.areEqual(0, race3.fractions[0].splitStart, "race3.fractions[0].splitStart should be 0");
+					Assert.areEqual(22.91, race3.fractions[0].splitTime, "race3.fractions[0].splitTime should be 22.91");
+					Assert.areEqual(880, race3.fractions[1].pofDist, "race3.fractions[1].pofDist should be 880");
+					Assert.areEqual(46.80, race3.fractions[1].pofTime, "race3.fractions[1].pofTime should be 46.80");
+					Assert.areEqual(440, race3.fractions[1].splitStart, "race3.fractions[1].splitStart should be 0");
+					Assert.areEqual(23.89, race3.fractions[1].splitTime, "race3.fractions[1].splitTime should be 23.89");
+					Assert.areEqual(1320, race3.fractions[2].pofDist, "race3.fractions[2].pofDist should be 1320");
+					Assert.areEqual(72.70, race3.fractions[2].pofTime, "race3.fractions[2].pofTime should be 72.70");
+					Assert.areEqual(880, race3.fractions[2].splitStart, "race3.fractions[2].splitStart should be 880");
+					Assert.areEqual(25.9, race3.fractions[2].splitTime, "race3.fractions[2].splitTime should be 25.9");
+					Assert.areEqual(1430, race3.fractions[3].pofDist, "race3.fractions[3].pofDist should be 1430");
+					Assert.areEqual(79.54, race3.fractions[3].pofTime, "race3.fractions[3].pofTime should be 79.54");
+					Assert.areEqual(1320, race3.fractions[3].splitStart, "race3.fractions[3].splitStart should be 1320");
+					Assert.areEqual(6.84, race3.fractions[3].splitTime, "race3.fractions[3].splitTime should be 6.84");
+					Assert.areEqual(race3.distance.value, race3.fractions[3].pofDist, "race3.fractions[3].pofDist should be equal to race3.distance.value");
+					
+					race4 = races[4];
+					
+					Assert.isFunction(race4.winTime, "race4.winTime should be a function");
+					Assert.isNumber(race4.winTime(), "race4.winTime() should return a Number");
+					Assert.areEqual(58.19, race4.winTime(), "race4.winTime() should be 58.19");
+					
+					Assert.isFunction(race4.getRaceRunDateCYMD, "race4.getRaceRunDateCYMD should be a function");
+					Assert.isNumber(race4.getRaceRunDateCYMD(), "race4.getRaceRunDateCYMD() should return a Number");
+					Assert.areEqual(20001125, race4.getRaceRunDateCYMD(), "race4.getRaceRunDateCYMD() should be 20001125");
+					
+				}
 	
 			});
 		

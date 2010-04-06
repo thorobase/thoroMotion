@@ -116,7 +116,6 @@ thorobase.BRISImportChartData.config = {
 thorobase.BRISImportChartData.parseRaceCards = function (/* google.visualization.DataTable */ data) {
 	var raceCards, raceCard, BRISImportChartRace, raceCardIndex, raceDateCYMD;
 
-		console.dir(this.config.raceCardCols);	
 	raceCards = google.visualization.data.group(data, this.config.raceCardCols, []);
 
 	BRISImportChartRace = [];
@@ -139,7 +138,100 @@ thorobase.BRISImportChartData.parseRaceCards = function (/* google.visualization
 };
 
 thorobase.BRISImportChartData.parseRaces = function (/* google.visualization.DataTable */data, /* thorobase.RaceCard */ raceCard) {
+	var raceCardView, raceCardRaces, races, raceIndex, race, raceRunDateCYMD, distanceVal, surfaceCode, raceTypeCode, raceGradeCode, ageSexRestrDesc, ageSexRestrCode, raceAgeSexRestrArray, racePointsOfFractions, fractionsIndex, fraction;
+	
+	raceCardView = new google.visualization.DataView(data);
+	
+	// filter the View by track and card date
+	raceCardView.setRows(
+		data.getFilteredRows([
+			{column: 0, value: raceCard.track}, 
+			{column: 1, value: raceCard.getRaceDateCYMD()}
+		])
+	);
+	
+	// group the View by the columns that contain just pertinent race data		
+	raceCardRaces = google.visualization.data.group(raceCardView, this.config.raceCols, []);
+		
+	races = [];
+	
+	for (raceIndex = 0; raceIndex < raceCardRaces.getNumberOfRows(); raceIndex += 1) {
+		race = Object.create(thorobase.Race);
+		
+		race.raceTrack = raceCardRaces.getValue(raceIndex, 0);
+		
+		raceRunDateCYMD = raceCardRaces.getFormattedValue(raceIndex, 1);
+		race.raceRunDate = {};
+		race.raceRunDate.year = raceRunDateCYMD.substring(0, 4) || null;
+		race.raceRunDate.month = raceRunDateCYMD.substring(4, 6) || null;
+		race.raceRunDate.day = raceRunDateCYMD.substring(6) || null;
+		
+		race.raceNumber = raceCardRaces.getValue(raceIndex, 2) || null;
+		
+		distanceVal = raceCardRaces.getValue(raceIndex, 3);
+		race.distance = {};
+		race.distance.unit = "yards";
+		race.distance.value = Math.abs(distanceVal) || null;
+		race.distance.isAbout = (distanceVal < 0) ? true : false;
+		
+		surfaceCode = raceCardRaces.getFormattedValue(raceIndex, 4);
+		race.surface = {};
+		race.surface.code = surfaceCode || null;
+		race.surface.desc = this.config.surfaces[surfaceCode] || null;
+		race.surface.condition = raceCardRaces.getFormattedValue(raceIndex, 16) || null;
+		
+		raceTypeCode = raceCardRaces.getFormattedValue(raceIndex, 5);
+		race.raceType = {};
+		race.raceType.code = raceTypeCode || null;
+		race.raceType.desc = this.config.raceTypes[raceTypeCode] || null;
+		race.raceType.classRaceName = raceCardRaces.getFormattedValue(raceIndex, 17) || null;
+		
+		raceGradeCode = raceCardRaces.getValue(raceIndex, 6);
+		race.raceGrade = {};
+		race.raceGrade.code = raceGradeCode || 0;
+		race.raceGrade.desc = this.config.raceGrades[raceGradeCode] || null;
+		
+		race.purse = {};
+		race.purse.unit = "USD";
+		race.purse.total = raceCardRaces.getValue(raceIndex, 7) || 0;
+		
+		// get the age and sex restriction details for this race
+		ageSexRestrDesc = [];
+		ageSexRestrCode = raceCardRaces.getFormattedValue(raceIndex, 8);
+		raceAgeSexRestrArray = ageSexRestrCode.split("");
+		ageSexRestrDesc[0] = this.config.ageSexRestrCode1[raceAgeSexRestrArray[0]].desc || null;
+		ageSexRestrDesc[1] = this.config.ageSexRestrCode2[raceAgeSexRestrArray[1]].desc || null;
+		ageSexRestrDesc[2] = this.config.ageSexRestrCode3[raceAgeSexRestrArray[2]].desc || null;
+		race.ageSexRestr = {};
+		race.ageSexRestr.code = ageSexRestrCode || null;
+		race.ageSexRestr.desc = ageSexRestrDesc || null;
+		race.ageSexRestr.shortDesc = (
+			this.config.ageSexRestrCode1[raceAgeSexRestrArray[0]].shortDesc +
+			this.config.ageSexRestrCode2[raceAgeSexRestrArray[1]].shortDesc +
+			this.config.ageSexRestrCode3[raceAgeSexRestrArray[2]].shortDesc
+		);
+		
+		race.isStatebred = (raceCardRaces.getValue(raceIndex, 9) === this.config.statebredFlag ? true : false);
+		
+		racePointsOfFractions = thorobase.Equibase.pointsOfFractions[race.distance.value];
+		race.fractions = [];
+		
+		for (fractionsIndex = 0; fractionsIndex < racePointsOfFractions.length; fractionsIndex += 1) {
+			if (racePointsOfFractions[fractionsIndex] && raceCardRaces.getValue(raceIndex, (10 + fractionsIndex)) ) {
+				fraction = {
+					pofDist: racePointsOfFractions[fractionsIndex], 
+					pofTime: raceCardRaces.getValue(raceIndex, (10 + fractionsIndex)),
+					splitStart: fractionsIndex === 0 ? 0 : fraction.pofDist,
+					splitTime: fractionsIndex === 0 ? raceCardRaces.getValue(raceIndex, (10 + fractionsIndex)) : +( raceCardRaces.getValue(raceIndex, (10  + fractionsIndex)) - fraction.pofTime ).toFixed(2)
+				};
+				race.fractions.push(fraction);
+			}
+		}
+		
+		races.push(race);
+	}
 
+	return races;
 };
 
 thorobase.BRISImportChartData.parsePerformances = function (/* google.visualization.DataTable */ data, /* thorobase.RaceCard */ raceCard, /* thorobase.Race */ race) {
