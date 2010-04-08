@@ -130,7 +130,12 @@ thorobase.Race = {
 		shortDesc: null 
 	},
 	isStatebred: null,
-	fractions: null,
+	fractions: {
+		pofDist: null,
+		pofTime: null,
+		splitStart: null,
+		splitTime: null
+	},
 	winTime: function () {
 		return (this.fractions) ? this.fractions[(this.fractions.length - 1)].pofTime : null;
 	},
@@ -148,7 +153,11 @@ thorobase.Performance = {
 	yearOfBirth: null,
 	weight: null,
 	claimingPrice: null,
-	callPositions: null,
+	callPositions: {
+		pocDist: null,
+		pocPos: null,
+		pocLengths: null
+	},
 	didNotFinish: null,
 	odds: null,
 	medication: {
@@ -170,7 +179,6 @@ thorobase.Performance = {
 		raceSession: null,
 		pp: null
 	},
-	wide: null,
 	getLastRaceDateCYMD: function () {
 		return +(this.lastRace.raceRunDate.year + "" + this.lastRace.raceRunDate.month + "" + this.lastRace.raceRunDate.day);
 	},

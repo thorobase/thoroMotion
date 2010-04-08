@@ -335,7 +335,13 @@ thorobase.BRISImportChartData.parsePerformances = function (/* google.visualizat
 					pocPos: racePerfs.getValue(perfIndex, (7 + callPosIndex)),
 					
 					// the culmulative number of lengths this horse is behind the leader at this point of call
-					pocLengths: racePerfs.getValue(perfIndex, (13 + callPosIndex)) || 0
+					pocLengths: racePerfs.getValue(perfIndex, (13 + callPosIndex)) || 0,
+					
+					// this value represents the 'running lane' (think of an athletics track) the horse was in at this point of call
+					// a pocWide value of 1 equates to the horses running against the rail; a value of 3 means 'three body widths off the rail',
+					// often shortened in commentary to 'three wide'. As the BRIS Import Chart Data does not contain how 'wide' the horses
+					// were at each point of call, a default value of the respective Post Position (PP) is used instead
+					pocWide: perf.pp
 				};
 
 				perf.callPositions.push(callPos);
