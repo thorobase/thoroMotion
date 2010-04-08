@@ -1,5 +1,7 @@
 thorobase.BRISImportChartData = Object.create(thorobase.ThoroData);
 
+// the config object represents the static data used by BRIS 
+// for the BRIS Import Chart Data files
 thorobase.BRISImportChartData.config = {
 
 	surfaces: {
@@ -106,6 +108,8 @@ thorobase.BRISImportChartData.config = {
 		"Bute & Lasix"
 	],
 	blinkeredFlag: "b",
+	// these arrays contain the column numbers related to just 
+	// thorobase.RaceCard, thorobase.Race and thorobase.Performance data respectively
 	raceCardCols: [0, 1],
 	raceCols: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 47],
 	perfCols: [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46],
@@ -113,13 +117,20 @@ thorobase.BRISImportChartData.config = {
 
 };
 
+/**
+ * Parse the BRIS Import Chart Data, contained within the Google Visualization DataTable object,
+ * into an array of thorobase.RaceCard objects
+ */
 thorobase.BRISImportChartData.parseRaceCards = function (/* google.visualization.DataTable */ data) {
-	var raceCards, raceCard, BRISImportChartRace, raceCardIndex, raceDateCYMD;
+	var raceCards, raceCard, BRISImportChartDataRaceCards, raceCardIndex, raceDateCYMD;
 
+	// group the data by the columns relating just to thorobase.RaceCard data
 	raceCards = google.visualization.data.group(data, this.config.raceCardCols, []);
 
-	BRISImportChartRace = [];
+	BRISImportChartDataRaceCards = [];
 	
+	// for each race card, create a thorobase.RaceCard object, populate the data fields
+	// and add it to the BRISImportChartDataRaceCards array
 	for (raceCardIndex = 0; raceCardIndex < raceCards.getNumberOfRows(); raceCardIndex += 1) {
 		raceCard = Object.create(thorobase.RaceCard);
 				
@@ -131,14 +142,18 @@ thorobase.BRISImportChartData.parseRaceCards = function (/* google.visualization
 		raceCard.raceDate.month = raceDateCYMD.substring(4, 6) || null;
 		raceCard.raceDate.day = raceDateCYMD.substring(6) || null;
 		
-		BRISImportChartRace.push(raceCard);
+		BRISImportChartDataRaceCards.push(raceCard);
 	}
 	
-	return BRISImportChartRace;
+	return BRISImportChartDataRaceCards;
 };
 
+/**
+ * Parse the BRIS Import Chart Data, contained within the Google Visualization DataTable object, 
+ * of the selected thorobase.RaceCard into an array of thorobase.Race objects
+ */
 thorobase.BRISImportChartData.parseRaces = function (/* google.visualization.DataTable */data, /* thorobase.RaceCard */ raceCard) {
-	var raceCardView, raceCardRaces, races, raceIndex, race, raceRunDateCYMD, distanceVal, surfaceCode, raceTypeCode, raceGradeCode, ageSexRestrDesc, ageSexRestrCode, raceAgeSexRestrArray, racePointsOfFractions, fractionsIndex, fraction;
+	var raceCardView, raceCardRaces, races, raceIndex, race, raceRunDateCYMD, distanceVal, surfaceCode, raceTypeCode, raceGradeCode, ageSexRestrDesc, ageSexRestrCode, raceAgeSexRestrArray, racePointsOfFractionals, fractionalsIndex, fractional;
 	
 	raceCardView = new google.visualization.DataView(data);
 	
@@ -155,6 +170,8 @@ thorobase.BRISImportChartData.parseRaces = function (/* google.visualization.Dat
 		
 	races = [];
 	
+	// for each race, create a thorobase.Race object, populate the data fields
+	// and add it to the races array
 	for (raceIndex = 0; raceIndex < raceCardRaces.getNumberOfRows(); raceIndex += 1) {
 		race = Object.create(thorobase.Race);
 		
@@ -196,6 +213,7 @@ thorobase.BRISImportChartData.parseRaces = function (/* google.visualization.Dat
 		race.purse.total = raceCardRaces.getValue(raceIndex, 7) || 0;
 		
 		// get the age and sex restriction details for this race
+		// use the BRIS config data to describe the race conditions in further detail
 		ageSexRestrDesc = [];
 		ageSexRestrCode = raceCardRaces.getFormattedValue(raceIndex, 8);
 		raceAgeSexRestrArray = ageSexRestrCode.split("");
@@ -213,18 +231,39 @@ thorobase.BRISImportChartData.parseRaces = function (/* google.visualization.Dat
 		
 		race.isStatebred = (raceCardRaces.getValue(raceIndex, 9) === this.config.statebredFlag ? true : false);
 		
-		racePointsOfFractions = thorobase.Equibase.pointsOfFractions[race.distance.value];
+		// get the Points of Fractional calls relevant to the distance of this race
+		racePointsOfFractionals = thorobase.Equibase.pointsOfFractionals[race.distance.value];
 		race.fractions = [];
 		
-		for (fractionsIndex = 0; fractionsIndex < racePointsOfFractions.length; fractionsIndex += 1) {
-			if (racePointsOfFractions[fractionsIndex] && raceCardRaces.getValue(raceIndex, (10 + fractionsIndex)) ) {
-				fraction = {
-					pofDist: racePointsOfFractions[fractionsIndex], 
-					pofTime: raceCardRaces.getValue(raceIndex, (10 + fractionsIndex)),
-					splitStart: fractionsIndex === 0 ? 0 : fraction.pofDist,
-					splitTime: fractionsIndex === 0 ? raceCardRaces.getValue(raceIndex, (10 + fractionsIndex)) : +( raceCardRaces.getValue(raceIndex, (10  + fractionsIndex)) - fraction.pofTime ).toFixed(2)
+		// for each fractional position, mark the distance of the point of fractional, 
+		// the fractional time for the lead horse and the split time (noting distance traveled 
+		// at the start of the split) between the time of this fraction and the previous fraction
+		for (fractionalsIndex = 0; fractionalsIndex < racePointsOfFractionals.length; fractionalsIndex += 1) {
+			
+			// if there is a point of fractional at this point of the race, and
+			// there is data relating to this point of fractional in the race data
+			if (racePointsOfFractionals[fractionalsIndex] && raceCardRaces.getValue(raceIndex, (10 + fractionalsIndex)) ) {
+				
+				// construct the fractional object plus fractional split time data
+				fractional = {
+					
+					// the distance traveled at this point of fractional
+					pofDist: racePointsOfFractionals[fractionalsIndex],
+					
+					// the fractional time at this point of fractional
+					pofTime: raceCardRaces.getValue(raceIndex, (10 + fractionalsIndex)),
+					
+					// if this is the first fraction, use 0 as the distance traveled at the start of this fraction
+					// else use the distance traveled at the end of the previous fraction
+					splitStart: fractionalsIndex === 0 ? 0 : fractional.pofDist,
+					
+					// if this is the first fraction, use 0 as the fractional time at the start of this fraction
+					// else use the fractional time traveled at the end of the previous fraction
+					splitTime: fractionalsIndex === 0 ? raceCardRaces.getValue(raceIndex, (10 + fractionalsIndex)) : +( raceCardRaces.getValue(raceIndex, (10  + fractionalsIndex)) - fractional.pofTime ).toFixed(2)
+					
 				};
-				race.fractions.push(fraction);
+				
+				race.fractions.push(fractional);
 			}
 		}
 		
@@ -234,7 +273,109 @@ thorobase.BRISImportChartData.parseRaces = function (/* google.visualization.Dat
 	return races;
 };
 
-thorobase.BRISImportChartData.parsePerformances = function (/* google.visualization.DataTable */ data, /* thorobase.RaceCard */ raceCard, /* thorobase.Race */ race) {
+/**
+ * Parse the BRIS Import Chart Data, contained within the Google Visualization DataTable object, 
+ * of the selected thorobase.Race into an array of thorobase.Performance objects
+ */
+thorobase.BRISImportChartData.parsePerformances = function (/* google.visualization.DataTable */ data, /* thorobase.Race */ race) {
+	var raceView, perfCols, racePerfs, performances, perfIndex, perf, racePointsOfCall, callPosIndex, callPos;
+
+	// create a DataView on all the race data and filter it to just the race selected
+	raceView = new google.visualization.DataView(data);
+	raceView.setRows(
+		data.getFilteredRows([
+			{column: 0, value: race.raceTrack}, 
+			{column: 1, value: race.getRaceRunDateCYMD()},
+			{column: 2, value: race.raceNumber}
+		])
+	);
+	
+	perfCols = this.config.perfCols;
+	
+	// group the race data in the selected columns that relate just to the performances in this race
+	racePerfs = google.visualization.data.group(raceView, perfCols, []);
+	
+	performances = [];
+	
+	// for each performance, create a thorobase.Performance object, populate it with the data
+	for (perfIndex = 0; perfIndex < racePerfs.getNumberOfRows(); perfIndex += 1) {
+		perf = Object.create(thorobase.Performance);
+		
+		perf.pp = racePerfs.getValue(perfIndex, 0) || null;
+		
+		// if this column's value is equal to the Coupled Entry flag, 
+		// then this horse was part of a entry coupled for betting purposes
+		perf.isEntryCoupled = (racePerfs.getFormattedValue(perfIndex, 1) === this.config.entryCouplingFlag ? true : false);
+		
+		perf.horseName = racePerfs.getFormattedValue(perfIndex, 2) || null;
+		perf.countryCode = racePerfs.getFormattedValue(perfIndex, 3) || "USA";
+		perf.yearOfBirth = racePerfs.getValue(perfIndex, 4) || null;
+		perf.weight = racePerfs.getValue(perfIndex, 5) || null;
+		perf.claimingPrice = racePerfs.getValue(perfIndex, 6) || 0;
+		
+		// get the Points of Call relevant to the distance of this race
+		racePointsOfCall = thorobase.Equibase.pointsOfCall[race.distance.value];
+		perf.callPositions = [];
+		
+		// for each call position, mark the distance of the point of call, the position in the field for this horse
+		// and the cumulative lengths behind the leader this horse was at this point of call
+		for (callPosIndex = 0; callPosIndex < racePointsOfCall.length; callPosIndex += 1) {
+			
+			// if there is a point of call at this point of the race, and
+			// there is data relating to this point of call in the race data
+			if (racePointsOfCall[callPosIndex] && racePerfs.getValue(perfIndex, (7 + callPosIndex)) ) {
+				
+				// construct an object representing the call positions
+				callPos = {
+					
+					// the distance traveled at this point of fractional
+					pocDist: racePointsOfCall[callPosIndex],
+					
+					// the race position of the horse at this point of call
+					pocPos: racePerfs.getValue(perfIndex, (7 + callPosIndex)),
+					
+					// the culmulative number of lengths this horse is behind the leader at this point of call
+					pocLengths: racePerfs.getValue(perfIndex, (13 + callPosIndex)) || 0
+				};
+
+				perf.callPositions.push(callPos);
+			}
+			
+		}	
+		
+		// if the horse's call position at the finish line equals the DNF flag, the horse did not finish the race
+		perf.didNotFinish = (perf.callPositions[(perf.callPositions.length - 1)] === this.config.didNotFinishFlag) ? true : false;
+		
+		// odds are to $1		
+		perf.odds = racePerfs.getValue(perfIndex, 19) || 0;
+		
+		medsCode = racePerfs.getValue(perfIndex, 20);
+		perf.medication = {};
+		perf.medication.code = medsCode || 0;
+		perf.medication.desc = this.config.medicationCodes[medsCode] || null;
+		
+		// true if the horse was wearing blinkers
+		perf.blinkered = (racePerfs.getFormattedValue(perfIndex, 21) === this.config.blinkeredFlag ? true : false);
+		
+		perf.trainerName = racePerfs.getFormattedValue(perfIndex, 22) || null;
+		perf.jockeyName = racePerfs.getFormattedValue(perfIndex, 23) || null;
+		perf.ownerName = racePerfs.getFormattedValue(perfIndex, 24) || null;
+				
+		lastRaceDateCYMD = racePerfs.getFormattedValue(perfIndex, 25);
+		perf.lastRace = {};
+		perf.lastRace.raceRunDate = {};
+		perf.lastRace.raceRunDate.year = lastRaceDateCYMD.substring(0, 4) || null;
+		perf.lastRace.raceRunDate.month = lastRaceDateCYMD.substring(4, 6) || null;
+		perf.lastRace.raceRunDate.day = lastRaceDateCYMD.substring(6) || null;
+		perf.lastRace.raceTrack = racePerfs.getFormattedValue(perfIndex, 26) || null;
+		perf.lastRace.raceNumber = racePerfs.getValue(perfIndex, 27) || null;
+		perf.lastRace.raceSession = racePerfs.getValue(perfIndex, 28) || 0;
+		perf.lastRace.pp = racePerfs.getValue(perfIndex, 29) || null;
+		
+		performances.push(perf);
+	}
+	
+	return performances;
 
 };
 

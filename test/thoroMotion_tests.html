@@ -162,11 +162,11 @@
 		        },
 		
 				testParseRaces: function () {
-					var Assert = Y.Assert, bris, raceCards, raceCard, races, race0, race1, race2, race3, race4;
+					var Assert = Y.Assert, bris, raceCard, races, race0, race1, race2, race3, race4;
 					
 					bris = Object.create(thorobase.BRISImportChartData);				
-					raceCards = bris.parseRaceCards(this.data);
-					raceCard = raceCards[0];
+					raceCard = bris.parseRaceCards(this.data)[0];
+					
 					races = bris.parseRaces(this.data, raceCard);
 					
 					Assert.isArray(races, "races should be an Array");
@@ -265,6 +265,129 @@
 					Assert.isFunction(race4.getRaceRunDateCYMD, "race4.getRaceRunDateCYMD should be a function");
 					Assert.isNumber(race4.getRaceRunDateCYMD(), "race4.getRaceRunDateCYMD() should return a Number");
 					Assert.areEqual(20001125, race4.getRaceRunDateCYMD(), "race4.getRaceRunDateCYMD() should be 20001125");
+					
+				},
+				
+				testParsePerformances: function () {
+					var Assert = Y.Assert, bris, performances, perf0, perf1, perf2, perf3, perf4;
+					
+					bris = Object.create(thorobase.BRISImportChartData);
+					raceCard = bris.parseRaceCards(this.data)[0];
+					races = bris.parseRaces(this.data, raceCard);
+
+					performances = bris.parsePerformances(this.data, races[0]);
+					
+					Assert.isArray(performances, "performances should be an Array");
+					Assert.areEqual(6, performances.length, "performances.length should be 6");
+					
+					perf0 = performances[0];
+					
+					Assert.isNumber(perf0.pp, "perf0.pp should be a Number");
+					Assert.areEqual(1, perf0.pp, "perf0.pp should be 1");
+					
+					Assert.isBoolean(perf0.isEntryCoupled, "perf0.isEntryCoupled should be a Boolean");
+					Assert.areEqual(false, perf0.isEntryCoupled, "perf0.isEntryCoupled should be false");
+					
+					Assert.isString(perf0.horseName, "perf0.horseName should be a String");
+					Assert.areEqual("IRISH CHARM", perf0.horseName, "perf0.horseName should be 'IRISH CHARM'");
+					
+					perf1 = performances[1];
+					
+					Assert.isString(perf1.countryCode, "perf1.countryCode should be a String");
+					Assert.areEqual("USA", perf1.countryCode, "perf1.countryCode should be 'USA'");
+					
+					Assert.isNumber(perf1.yearOfBirth, "perf1.yearOfBirth should be a Number");
+					Assert.areEqual(96, perf1.yearOfBirth, "perf1.yearOfBirth should be 95");
+					
+					Assert.isNumber(perf1.weight, "perf1.weight should be a Number");
+					Assert.areEqual(112, perf1.weight, "perf1.weight should be 105");
+					
+					perf2 = performances[2];
+					
+					Assert.isNumber(perf2.claimingPrice, "perf2.claimingPrice should be a Number");
+					Assert.areEqual(0, perf2.claimingPrice, "perf2.claimingPrice should be 0");
+					
+					Assert.isArray(perf2.callPositions, "perf2.callPositions should be an Array");
+					Assert.areEqual(6, perf2.callPositions.length, "perf2.callPositions.length should be 6");
+					Assert.isObject(perf2.callPositions[0], "perf2.callPositions[0] should be an Object");
+					Assert.areEqual(880, perf2.callPositions[0].pocDist, "perf2.callPositions[0].pocDist should be 880");
+					Assert.areEqual(1, perf2.callPositions[0].pocPos, "perf2.callPositions[0].pocPos should be 1");
+					Assert.areEqual(0, perf2.callPositions[0].pocLengths, "perf2.callPositions[0].pocLengths should be 0");
+					Assert.areEqual(1760, perf2.callPositions[1].pocDist, "perf2.callPositions[1].pocDist should be 1760");
+					Assert.areEqual(1, perf2.callPositions[1].pocPos, "perf2.callPositions[1].pocPos should be 1");
+					Assert.areEqual(0, perf2.callPositions[1].pocLengths, "perf2.callPositions[1].pocLengths should be 0");
+					Assert.areEqual(2640, perf2.callPositions[2].pocDist, "perf2.callPositions[2].pocDist should be 2640");
+					Assert.areEqual(1, perf2.callPositions[2].pocPos, "perf2.callPositions[2].pocPos should be 1");
+					Assert.areEqual(0, perf2.callPositions[2].pocLengths, "perf2.callPositions[2].pocLengths should be 0");
+					Assert.areEqual(3080, perf2.callPositions[3].pocDist, "perf2.callPositions[3].pocDist should be 3080");
+					Assert.areEqual(1, perf2.callPositions[3].pocPos, "perf2.callPositions[3].pocPos should be 1");
+					Assert.areEqual(0, perf2.callPositions[3].pocLengths, "perf2.callPositions[3].pocLengths should be 0");
+					Assert.areEqual(3300, perf2.callPositions[4].pocDist, "perf2.callPositions[4].pocDist should be 3300");
+					Assert.areEqual(1, perf2.callPositions[4].pocPos, "perf2.callPositions[4].pocPos should be 1");
+					Assert.areEqual(0, perf2.callPositions[4].pocLengths, "perf2.callPositions[4].pocLengths should be 0");
+					Assert.areEqual(3520, perf2.callPositions[5].pocDist, "perf2.callPositions[5].pocDist should be 3520");
+					Assert.areEqual(1, perf2.callPositions[5].pocPos, "perf2.callPositions[5].pocPos should be 1");
+					Assert.areEqual(0, perf2.callPositions[5].pocLengths, "perf2.callPositions[5].pocLengths should be 0");
+					Assert.areEqual(
+						races[0].distance.value, 
+						perf2.callPositions[5].pocDist, 
+						"perf2.callPositions[5].pocDist should be equal to perf2.distance.value"
+					);
+					
+					perf3 = performances[3];
+					
+					Assert.isBoolean(perf3.didNotFinish, "perf3.didNotFinish should be a Boolean");
+					Assert.areEqual(false, perf3.didNotFinish, "perf3.didNotFinish should be false");
+					
+					Assert.isString(perf3.jockeyName, "perf3.jockeyName should be a String");
+					Assert.areEqual("NICHOLS J E", perf3.jockeyName, "perf3.jockeyName should be 'NICHOLS J E'");
+					
+					Assert.isNumber(perf3.odds, "perf3.odds should be a Number");
+					Assert.areEqual(7.9, perf3.odds, "perf3.odds should be 7.9");
+					
+					Assert.isString(perf3.ownerName, "perf3.ownerName should be a String");
+					Assert.areEqual("ROMERO HOWARD", perf3.ownerName, "perf3.ownerName should be 'ROMERO HOWARD'");
+					
+					Assert.isString(perf3.trainerName, "perf3.trainerName should be a String");
+					Assert.areEqual("LEONARD GEORGE III", perf3.trainerName, "perf3.trainerName should be 'LEONARD GEORGE III'");
+					
+					perf4 = performances[4];			
+					
+					Assert.isString(perf4.lastRace.raceRunDate.year, "perf4.lastRace.raceRunDate.year should be a String");
+					Assert.areEqual("2000", perf4.lastRace.raceRunDate.year, "perf4.lastRace.raceRunDate.year should be '2000'");
+					
+					Assert.isString(perf4.lastRace.raceRunDate.month, "perf4.lastRace.raceRunDate.month should be a String");
+					Assert.areEqual("11", perf4.lastRace.raceRunDate.month, "perf4.lastRace.raceRunDate.month should be '11'");
+					
+					Assert.isString(perf4.lastRace.raceRunDate.day, "perf4.lastRace.raceRunDate.day should be a String");
+					Assert.areEqual("11", perf4.lastRace.raceRunDate.day, "perf4.lastRace.raceRunDate.day should be '11'");
+					
+					Assert.isNumber(perf4.lastRace.pp, "perf4.lastRace.pp should be a Number");
+					Assert.areEqual(2, perf4.lastRace.pp, "perf4.lastRace.pp should be 2");
+					
+					Assert.isNumber(perf4.lastRace.raceNumber, "perf4.lastRace.raceNumber should be a Number");
+					Assert.areEqual(5, perf4.lastRace.raceNumber, "perf4.lastRace.raceNumber should be 5");
+					
+					Assert.isNumber(perf4.lastRace.raceSession, "perf4.lastRace.raceSession should be a Number");
+					Assert.areEqual(0, perf4.lastRace.raceSession, "perf4.lastRace.raceSession should be 0");
+					
+					Assert.isString(perf4.lastRace.raceTrack, "perf4.lastRace.raceTrack should be a String");
+					Assert.areEqual("CD ", perf4.lastRace.raceTrack, "perf4.lastRace.raceTrack should be 'CD '");
+					
+					Assert.isFunction(perf4.getLastRaceDateCYMD, "perf4.getLastRaceDateCYMD should be a function");
+					Assert.isNumber(perf4.getLastRaceDateCYMD(), "perf4.getLastRaceDateCYMD() should return a Number");
+					Assert.areEqual(20001111, perf4.getLastRaceDateCYMD(), "perf4.getLastRaceDateCYMD() should return 20001111");
+					
+					perf5 = performances[5];
+					
+					Assert.isBoolean(perf5.blinkered, "perf5.blinkered should be a Boolean");
+					Assert.areEqual(false, perf5.blinkered, "perf5.blinkered should be false");
+					
+					Assert.isObject(perf5.medication, "perf5.medication should be an Object");
+					Assert.isNumber(perf5.medication.code, "perf5.medication.code should be a Number");
+					Assert.areEqual(1, perf5.medication.code, "perf5.medication.code should be 1");
+					Assert.isString(perf5.medication.desc, "perf5.medication.desc should be a String");
+					Assert.areEqual("Lasix", perf5.medication.desc, "perf5.medication.desc should be 'Lasix'");
 					
 				}
 	

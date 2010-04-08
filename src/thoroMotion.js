@@ -22,7 +22,7 @@ thorobase.ThoroData = {
 	/* 
 	 * Parses the details of one race on a Race Card into a Race
 	 */
-	parseRaces: function (/* google.visualization.DataTable */ data, /* thorobase.RaceDay */ raceDay) {
+	parseRaces: function (/* google.visualization.DataTable */ data, /* thorobase.RaceCard */ raceCard) {
 		// override this for data supplier specific parsing
 	},
 	
@@ -64,6 +64,21 @@ thorobase.ThoroData = {
 	
 };
 
+thorobase.Meet = {
+	meetName: null,
+	meetStartDate: {
+		year: null,
+		month: null,
+		day: null
+	},
+	meetEndDate: {
+		year: null,
+		month: null,
+		day: null
+	},
+	raceCards: null
+};
+
 thorobase.RaceCard = {
 	track: null,
 	raceDate: {
@@ -73,7 +88,7 @@ thorobase.RaceCard = {
 	},
 	races: null,
 	getRaceDateCYMD: function () {
-		return +(this.raceDate.year + this.raceDate.month + this.raceDate.day);
+		return +(this.raceDate.year + "" + this.raceDate.month + "" + this.raceDate.day);
 	}
 };
 
@@ -120,7 +135,7 @@ thorobase.Race = {
 		return (this.fractions) ? this.fractions[(this.fractions.length - 1)].pofTime : null;
 	},
 	getRaceRunDateCYMD: function () {
-		return +(this.raceRunDate.year + this.raceRunDate.month + this.raceRunDate.day);
+		return +(this.raceRunDate.year + "" + this.raceRunDate.month + "" + this.raceRunDate.day);
 	},
 	performances: null
 };
@@ -135,15 +150,12 @@ thorobase.Performance = {
 	claimingPrice: null,
 	callPositions: null,
 	didNotFinish: null,
-	beatenLengths: null,
-	pocSplits: null,
-	totalSplits: null,
 	odds: null,
 	medication: {
 		code: null,
 		desc: null
 	},
-	isBlinkered: null,
+	blinkered: null,
 	trainerName: null,
 	jockeyName: null,
 	ownerName: null,
@@ -160,13 +172,13 @@ thorobase.Performance = {
 	},
 	wide: null,
 	getLastRaceDateCYMD: function () {
-		return +(this.lastRace.raceDate.year + this.lastRace.raceDate.month + this.lastRace.raceDate.day);
+		return +(this.lastRace.raceRunDate.year + "" + this.lastRace.raceRunDate.month + "" + this.lastRace.raceRunDate.day);
 	},
 	finishBeatenLengths: function () {
-		return (this.beatenLengths) ? this.beatenLengths[(this.beatenLengths.length - 1)] : null;
+		return (this.callPositions) ? this.callPositions[(this.callPositions.length - 1)].pocLengths : null;
 	},
 	finishPosition: function () {
-		return (this.callPositions) ? this.callPositions[(this.callPositions.length - 1)] : null;
+		return (this.callPositions) ? this.callPositions[(this.callPositions.length - 1)].pocPos : null;
 	}
 };
 
@@ -225,7 +237,7 @@ thorobase.Equibase = {
 	
 	// Equibase Points of Fractional Times for Various Race Distances (in yards)
 	// * = extrapolated distance from Points of Call
-	pointsOfFractions: {
+	pointsOfFractionals: {
 	//   dist:  [frac1, frac2, frac3, frac4, frac5, finish]	// distance equiv
 		"220":  [    ,     ,     ,     ,     ,    220],		// 1 furlong		(1 		furlong)
 		"440":  [    ,     ,     ,     ,     ,    440],		// 2 furlongs		(2 		furlongs)
