@@ -158,7 +158,8 @@
 					Assert.isNumber(raceCard.getRaceDateCYMD(), "raceCard.getRaceDateCYMD() should return a Number");
 					Assert.areEqual(20001125, raceCard.getRaceDateCYMD(), "raceCard.getRaceDateCYMD() should return 20001125");
 					
-					Assert.isNull(raceCard.races, "raceCard.races should be null");
+					Assert.isArray(raceCard.races, "raceCard.races should be an initialized Array")
+					Assert.areEqual(0, raceCard.races.length, "raceCard.races should be empty");
 		        },
 		
 				testParseRaces: function () {
@@ -269,7 +270,7 @@
 				},
 				
 				testParsePerformances: function () {
-					var Assert = Y.Assert, bris, performances, perf0, perf1, perf2, perf3, perf4;
+					var Assert = Y.Assert, bris, raceCard, performances, perf0, perf1, perf2, perf3, perf4;
 					
 					bris = Object.create(thorobase.BRISImportChartData);
 					raceCard = bris.parseRaceCards(this.data)[0];
@@ -389,7 +390,59 @@
 					Assert.isString(perf5.medication.desc, "perf5.medication.desc should be a String");
 					Assert.areEqual("Lasix", perf5.medication.desc, "perf5.medication.desc should be 'Lasix'");
 					
-				}
+				},
+				
+				testCreateThoroMotionData: function () {
+					var Assert = Y.Assert, bris, raceCard, race, thoroMotionData;
+					
+					bris = Object.create(thorobase.BRISImportChartData);
+					raceCard = bris.parseRaceCards(this.data)[0];
+					raceCard.races = bris.parseRaces(this.data, raceCard);
+					race = races[10];
+					race.performances = bris.parsePerformances(this.data, race);
+					
+					thoroMotionData = bris.createThoroMotionData(race);
+					
+					Assert.isObject(thoroMotionData);
+					Assert.areEqual(42, thoroMotionData.getNumberOfRows(), "thoroMotionData.getNumberOfRows() should return 42");
+					
+					Assert.areEqual("PERCY HOPE", thoroMotionData.getValue(0,0), "thoroMotionData.getValue(0,0) should return 'PERCY HOPE");
+					Assert.areEqual(10000, thoroMotionData.getValue(0,1), "thoroMotionData.getValue(0,1) should return 10000");
+					Assert.areEqual(0, thoroMotionData.getValue(0,2), "thoroMotionData.getValue(0,2) should return 0");
+					Assert.areEqual(-1, thoroMotionData.getValue(0,3), "thoroMotionData.getValue(0,3) should return -1");
+					Assert.areEqual(1, thoroMotionData.getValue(0,4), "thoroMotionData.getValue(0,4) should return 1");
+					Assert.areEqual(7.5, thoroMotionData.getValue(0,5), "thoroMotionData.getValue(0,5) should return 7.5");
+					
+					Assert.areEqual("HOLIDAY THUNDER", thoroMotionData.getValue(20,0), "thoroMotionData.getValue(20,0) should return 'HOLIDAY THUNDER");
+					Assert.areEqual(10008.5, thoroMotionData.getValue(20,1), "thoroMotionData.getValue(20,1) should return 10008.5");
+					Assert.areEqual(-1.25, thoroMotionData.getValue(20,2), "thoroMotionData.getValue(20,2) should return -1.25");
+					Assert.areEqual(-3, thoroMotionData.getValue(20,3), "thoroMotionData.getValue(20,3) should return -3");
+					Assert.areEqual(3, thoroMotionData.getValue(20,4), "thoroMotionData.getValue(20,4) should return 3");
+					Assert.areEqual(1.2, thoroMotionData.getValue(20,5), "thoroMotionData.getValue(20,5) should return 1.2");
+					
+				},
+				
+				testCreateThoroMotion: function () {
+					var Assert = Y.Assert, bris, raceCard, race, thoroMotionData;
+					
+					bris = Object.create(thorobase.BRISImportChartData);
+					raceCard = bris.parseRaceCards(this.data)[0];
+					raceCard.races = bris.parseRaces(this.data, raceCard);
+					race = races[10];
+					race.performances = bris.parsePerformances(this.data, race);
+					
+					thoroMotionData = bris.createThoroMotionData(race);
+					
+					var thoroMotion = Object.create(thorobase.ThoroMotion);
+					
+					thoroMotion.tmInit(document.getElementById('thoroMotion'));
+
+					options = {};
+					//options['width'] = 600;
+					//Aoptions['height'] = 400;
+
+					thoroMotion.tmDraw(thoroMotionData, options);
+				},
 	
 			});
 		
@@ -422,6 +475,7 @@
 	</script> 
 
 	<!--END SOURCE CODE FOR EXAMPLE =============================== -->
+	<div id="thoroMotion"></div>
 
 </body>
 </html>

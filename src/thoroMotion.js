@@ -296,6 +296,51 @@ thorobase.Equibase = {
 };
 
 // Wraps the Motion Chart into the ThoroMotion object
-thorobase.ThoroMotion = function (container) {
-	return new google.visualization.MotionChart(container);
+thorobase.ThoroMotion = {
+	tmChart: null,
+	tmInit: function (/* DOM Node */ container) {
+		tmChart = new google.visualization.MotionChart(container);
+	},
+	tmDraw: function (/* google.visualization.DataTable */ thoroMotionData, /* Array */ options) {
+		tmChart.draw(thoroMotionData, options)
+	},
+	queryDataSource: function (/* String */ dataSourceUrl, /* String */ queryString) {
+		var query;
+
+		query = new google.visualization.Query(dataSourceUrl);
+
+		if (queryString) {
+			query.setQuery(queryString);
+		} else {
+			query.setQuery("SELECT *");
+		}
+
+		query.send(this.handleQueryResponse);
+	},
+	handleQueryResponse: function (/* google.visualization.QueryResponse */ response) {
+		var data, bris, raceCards, raceCard, race, thoroMotionData, options, thoroMotion;
+
+		if (response.isError()) {
+			alert("Error in query: " + response.getMessage() + " " + response.getDetailedMessage());
+			return;
+		}
+
+		// get the raw data from the query response
+		data = response.getDataTable();
+		
+		bris = Object.create(thorobase.BRISImportChartData);
+		raceCards = bris.parseAll(data);
+		raceCard = raceCards[0];
+		race = raceCard[0];
+		thoroMotionData = bris.createThoroMotionData(race);
+
+		thoroMotion = tmInit(document.getElementById('thoroMotion'));
+		
+		options = {};
+		options['width'] = 600;
+		options['height'] = 400;
+		
+		thoroMotion.tmDraw(thoromotionData, options);
+	}
+	
 };
