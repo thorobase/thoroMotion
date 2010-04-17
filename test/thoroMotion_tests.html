@@ -59,6 +59,7 @@
 	<script type="text/javascript" src="../src/thoroMotion.js"></script>
 	<script type="text/javascript" src="../src/providers/brisImportChartData.js"></script>
 	<script type="text/javascript" src="sample_brisImportChartData_racedata.js"></script>
+	<script type="text/javascript" src="sample_fusionTableThoroData.js"></script>
 	
 	<!--begin custom header content for this example--> 
 	<style type="text/css"> 
@@ -132,7 +133,7 @@
 				testParseRaceCards: function () {
 		            var Assert = Y.Assert, bris, raceCards, raceCard;
 	
-					bris = Object.create(thorobase.BRISImportChartData);
+					bris = Object.create(thorobase.thorodata.BRISImportChartData);
 				
 					raceCards = bris.parseRaceCards(this.data);
 				
@@ -165,7 +166,7 @@
 				testParseRaces: function () {
 					var Assert = Y.Assert, bris, raceCard, races, race0, race1, race2, race3, race4;
 					
-					bris = Object.create(thorobase.BRISImportChartData);				
+					bris = Object.create(thorobase.thorodata.BRISImportChartData);				
 					raceCard = bris.parseRaceCards(this.data)[0];
 					
 					races = bris.parseRaces(this.data, raceCard);
@@ -272,7 +273,7 @@
 				testParsePerformances: function () {
 					var Assert = Y.Assert, bris, raceCard, performances, perf0, perf1, perf2, perf3, perf4;
 					
-					bris = Object.create(thorobase.BRISImportChartData);
+					bris = Object.create(thorobase.thorodata.BRISImportChartData);
 					raceCard = bris.parseRaceCards(this.data)[0];
 					races = bris.parseRaces(this.data, raceCard);
 
@@ -393,15 +394,16 @@
 				},
 				
 				testCreateThoroMotionData: function () {
-					var Assert = Y.Assert, bris, raceCard, race, thoroMotionData;
+					var Assert = Y.Assert, bris, raceCard, race, thoroMotion, thoroMotionData;
 					
-					bris = Object.create(thorobase.BRISImportChartData);
+					bris = Object.create(thorobase.thorodata.BRISImportChartData);
 					raceCard = bris.parseRaceCards(this.data)[0];
 					raceCard.races = bris.parseRaces(this.data, raceCard);
 					race = races[10];
 					race.performances = bris.parsePerformances(this.data, race);
 					
-					thoroMotionData = bris.createThoroMotionData(race);
+					thoroMotion = Object.create(thorobase.ThoroMotion);
+					thoroMotionData = thoroMotion.createThoroMotionData(race);
 					
 					Assert.isObject(thoroMotionData);
 					Assert.areEqual(42, thoroMotionData.getNumberOfRows(), "thoroMotionData.getNumberOfRows() should return 42");
@@ -422,27 +424,74 @@
 					
 				},
 				
-				testCreateThoroMotion: function () {
-					var Assert = Y.Assert, bris, raceCard, race, thoroMotionData;
+				testCreateThoroMotionLocal: function () {
+					var Assert = Y.Assert, bris, raceCard, race, thoroMotion, thoroMotionData, options, vizNode;
 					
-					bris = Object.create(thorobase.BRISImportChartData);
+					bris = Object.create(thorobase.thorodata.BRISImportChartData);
 					raceCard = bris.parseRaceCards(this.data)[0];
 					raceCard.races = bris.parseRaces(this.data, raceCard);
-					race = races[10];
+					race = raceCard.races[10];
 					race.performances = bris.parsePerformances(this.data, race);
 					
-					thoroMotionData = bris.createThoroMotionData(race);
-					
-					var thoroMotion = Object.create(thorobase.ThoroMotion);
-					
-					thoroMotion.tmInit(document.getElementById('thoroMotion'));
+					thoroMotion = Object.create(thorobase.ThoroMotion);
+					thoroMotionData = thoroMotion.createThoroMotionData(race);
+										
+					thoroMotion.tmInit(document.getElementById('thoroMotionLocal'));
 
 					options = {};
-					//options['width'] = 600;
-					//Aoptions['height'] = 400;
 
 					thoroMotion.tmDraw(thoroMotionData, options);
+					
+					vizNode = Y.one("#thoroMotionLocal").get('children').item(0);
+					
+					Assert.areEqual("google.visualiation.MotionChart-0_swf", vizNode.get('name'), 
+							"The thoroMotion DOM Node should now contain a MotionChart SWF embed object");
 				},
+				
+				testCreateThoroMotionRemote: function () {
+					var Assert = Y.Assert, bris, raceCards, race, thoroMotion, thoroMotionData, options, vizNode;
+					
+					bris = Object.create(thorobase.thorodata.BRISImportChartData);
+					bris.getRawData(
+						"http://spreadsheets.google.com/tq?key=0AiOsxY8r6SSUdHp0cmJsTkdqYUhUQjdLcm5GNm91WGc",
+						"SELECT * WHERE A <> \"\"",
+						(function (bris) {
+							return function (response) {
+								if (response.isError()) {
+									alert("Error in query: " + response.getMessage() + " " + response.getDetailedMessage());
+									return;
+								}
+
+								// get the raw data from the query response
+								bris.rawData = response.getDataTable();
+								
+								raceCards = bris.parseAll(bris.rawData);
+
+								race = (raceCards[0]).races[0];
+
+								thoroMotion = Object.create(thorobase.ThoroMotion);
+								thoroMotionData = thoroMotion.createThoroMotionData(race);
+
+								thoroMotion.tmInit(document.getElementById('thoroMotion'));
+								options = {};
+								thoroMotion.tmDraw(thoroMotionData, options);
+							}
+						}) (bris)
+					);
+					
+					this.wait(function () {
+						vizNode = Y.one("#thoroMotion").get('children').item(0);
+
+						Assert.areEqual("google.visualiation.MotionChart-1_swf", vizNode.get('name'), 
+								"The thoroMotion DOM Node should now contain a MotionChart SWF embed object");
+					 }, 10000);
+				},
+				
+				testAugmentThoroMotionData: function() {
+					var Assert = Y.Assert;
+					
+					
+				}
 	
 			});
 		
@@ -475,6 +524,7 @@
 	</script> 
 
 	<!--END SOURCE CODE FOR EXAMPLE =============================== -->
+	<div id="thoroMotionLocal"></div>
 	<div id="thoroMotion"></div>
 
 </body>

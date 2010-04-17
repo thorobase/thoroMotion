@@ -9,62 +9,85 @@ if (typeof Object.create !== 'function') {
 // Single global namespace
 var thorobase = {};
 
+// thorodata namespace
+thorobase.thorodata = {};
+
 // Used to extract the race information from a DataTable of horse racing results from a racing data provider
-thorobase.ThoroData = {
+thorobase.thorodata.Provider = {
+	
+	rawData: null,
 	
 	/*
 	 * Parses the details of a set of Races at a Track on a particular day into a Race Card
 	 */
-	parseRaceCards: function (/* google.visualization.DataTable */ data) {
+	parseRaceCards: function (/* google.visualization.DataTable */ rawData) {
 		// override this for data supplier specific parsing
 	},
 	
 	/* 
 	 * Parses the details of one race on a Race Card into a Race
 	 */
-	parseRaces: function (/* google.visualization.DataTable */ data, /* thorobase.RaceCard */ raceCard) {
+	parseRaces: function (/* google.visualization.DataTable */ rawData, /* thorobase.thorodata.RaceCard */ raceCard) {
 		// override this for data supplier specific parsing
 	},
 	
 	/*
 	 * Parses the details of a record of a race horse's performance in a Race into a Performance
 	 */
-	parsePerformances: function (/* google.visualization.DataTable */ data, /* thorobase.Race */ race) {
+	parsePerformances: function (/* google.visualization.DataTable */ rawData, /* thorobase.thorodata.Race */ race) {
 		// override this for data supplier specific parsing
 	},
 	
 	/*
 	 * Utility function to parse all details of a supplied racing data DataTable object
+	 * returns Array of thorobase.thorodata.RaceCard objects
 	 */
-	parseAll: function (/* google.visualization.DataTable */ data) {
+	parseAll: function (/* google.visualization.DataTable */ rawData) {
 		var raceCards, raceCardIndex, raceCard, raceIndex, race;
 
-		raceCards = this.parseRaceCards(data);
+		raceCards = this.parseRaceCards(rawData);
 
 		for (raceCardIndex = 0; raceCardIndex < raceCards.length; raceCardIndex += 1) {
 			raceCard = raceCards[raceCardIndex];
 
-			raceCard.races = this.parseRaces(data, raceCard);
+			raceCard.races = this.parseRaces(rawData, raceCard);
 
 			for (raceIndex = 0; raceIndex < raceCard.races.length; raceIndex += 1) {
 				race = raceCard.races[raceIndex];			
-				raceCard.races[raceIndex].performances = this.parsePerformances(data, raceCard, race);
+				raceCard.races[raceIndex].performances = this.parsePerformances(rawData, race);
 			}
 		}
 
 		return raceCards;
 	},
 	
-	/*
-	 * Constructs the racing data into the required format for displaying a thoroMotion
-	 */
-	createThoroMotionData: function(/* google.visualization.DataTable */ data) {
-		// override this for data supplier specific thoroMotion visualization
+	getRawData: function (/* String */ dataSourceUrl, /* String */ queryString, /* function */ callBack) {
+		var query;
+
+		query = new google.visualization.Query(dataSourceUrl);
+
+		if (queryString) {
+			query.setQuery(queryString);
+		} else {
+			query.setQuery("SELECT *");
+		}
+
+		query.send(callBack);
+	},
+	
+	_setRawData: function (/* google.visualization.QueryResponse */ response) {
+		if (response.isError()) {
+			alert("Error in query: " + response.getMessage() + " " + response.getDetailedMessage());
+			return;
+		}
+		
+		// get the raw data from the query response
+		this.rawData = response.getDataTable();
 	}
 	
 };
 
-thorobase.Meet = {
+thorobase.thorodata.Meet = {
 	meetName: null,
 	meetStartDate: {
 		year: null,
@@ -79,7 +102,7 @@ thorobase.Meet = {
 	raceCards: null
 };
 
-thorobase.RaceCard = {
+thorobase.thorodata.RaceCard = {
 	track: null,
 	raceDate: {
 		year: null,
@@ -92,7 +115,7 @@ thorobase.RaceCard = {
 	}
 };
 
-thorobase.Race = {
+thorobase.thorodata.Race = {
 	raceTrack: null,
 	raceRunDate: {
 		year: null,
@@ -145,7 +168,7 @@ thorobase.Race = {
 	performances: null
 };
 
-thorobase.Performance = {
+thorobase.thorodata.Performance = {
 	pp: null,
 	isEntryCoupled: null,
 	horseName: null,
@@ -190,10 +213,71 @@ thorobase.Performance = {
 	}
 };
 
+// Wraps the Motion Chart into the ThoroMotion object
+thorobase.ThoroMotion = {
+	tmChart: null,
+	
+	tmInit: function (/* DOM Node */ container) {
+		this.tmChart = new google.visualization.MotionChart(container);
+	},
+	
+	tmDraw: function (/* google.visualization.DataTable */ thoroMotionData, /* Array */ options) {
+		this.tmChart.draw(thoroMotionData, options)
+	},
+	
+	/*
+	 * Constructs the racing data into the required format for displaying a thoroMotion
+	 * returns google.visualization.DataTable
+	 */
+	createThoroMotionData: function(/* thorobase.thorodata.Race */ race) {
+		var thoroMotionData, numRunners, startRowIndex, performance, startDist = 10000, railPosFlag = -1, callPosIndex, perfCallPos, furlongYards = 220;
+
+		thoroMotionData = new google.visualization.DataTable();
+		thoroMotionData.addColumn('string', 'Horse Name', 'horseName');		// horse name
+		thoroMotionData.addColumn('number', 'Furlongs', 'furlongs');		// use integer (years) to simulate furlongs due to 1901 date restriction
+		thoroMotionData.addColumn('number', 'Lengths Behind', 'lengths');	// position (in lengths) versus the leader
+		thoroMotionData.addColumn('number', 'Wide', 'wide');				// if available, how wide from rail, otherwise PP value
+		thoroMotionData.addColumn('number', 'PP', 'pp');					// post position
+		thoroMotionData.addColumn('number', 'Odds', 'odds');				// horse odds to $1
+
+		numRunners = race.performances.length;
+
+		// we need to create the first rows to represent the horses in the starting gate about to race		
+		for (startRowIndex = 0; startRowIndex < numRunners; startRowIndex += 1) {
+			performance = race.performances[startRowIndex];
+
+			thoroMotionData.addRow([
+				performance.horseName, 				// horse name
+				startDist,							// 0 furlongs travelled*
+				0, 									// all level as it's the start
+				(railPosFlag * performance.pp),		// use PP for wide value as in the gate
+				performance.pp,						// post position
+				performance.odds					// horse odds to $1
+			]);
+
+			for (callPosIndex = 0; callPosIndex < performance.callPositions.length; callPosIndex += 1) {
+				perfCallPos = performance.callPositions[callPosIndex];
+
+				thoroMotionData.addRow([
+					performance.horseName,								// horse name 
+					startDist + (perfCallPos.pocDist / furlongYards), 	// furlongs travelled at point of call*
+					(railPosFlag * perfCallPos.pocLengths), 			// lengths behind the leader at point of call
+					(railPosFlag * perfCallPos.pocWide),				// width from rail at this point of call
+					performance.pp,										// post position
+					performance.odds									// horse odds to $1
+				]);
+			}
+		}
+
+		return thoroMotionData;
+	},	
+};
+
 // Equibase's static data
 thorobase.Equibase = {
 	
 	// Equibase Points of Call for Various Race Distances (in yards)
+	// http://www.equibase.com/newfan/pointsofcall.cfm
 	// * = extrapolated distance from Points of Fractions
 	pointsOfCall: {
 	//   dist:  [start, 1st,  2nd,  3rd, stretch, finish]	// distance equiv
@@ -244,6 +328,7 @@ thorobase.Equibase = {
 	},
 	
 	// Equibase Points of Fractional Times for Various Race Distances (in yards)
+	// http://www.equibase.com/newfan/fractional_times.cfm
 	// * = extrapolated distance from Points of Call
 	pointsOfFractionals: {
 	//   dist:  [frac1, frac2, frac3, frac4, frac5, finish]	// distance equiv
@@ -291,56 +376,6 @@ thorobase.Equibase = {
 		"3960": [ 880, 1760, 2640, 3080, 3520,   3960],		// 2 1/4 miles		(18		furlongs)*
 		"4070": [ 880, 1760, 2640, 3080, 3520,   4070],		// 2 5/16 miles		(18.5	furlongs)*
 		"5280": [ 880, 1760, 2640, 3080, 3520,   5280]		// 3 miles			(24 	furlongs)*
-	}
-	
-};
-
-// Wraps the Motion Chart into the ThoroMotion object
-thorobase.ThoroMotion = {
-	tmChart: null,
-	tmInit: function (/* DOM Node */ container) {
-		tmChart = new google.visualization.MotionChart(container);
-	},
-	tmDraw: function (/* google.visualization.DataTable */ thoroMotionData, /* Array */ options) {
-		tmChart.draw(thoroMotionData, options)
-	},
-	queryDataSource: function (/* String */ dataSourceUrl, /* String */ queryString) {
-		var query;
-
-		query = new google.visualization.Query(dataSourceUrl);
-
-		if (queryString) {
-			query.setQuery(queryString);
-		} else {
-			query.setQuery("SELECT *");
-		}
-
-		query.send(this.handleQueryResponse);
-	},
-	handleQueryResponse: function (/* google.visualization.QueryResponse */ response) {
-		var data, bris, raceCards, raceCard, race, thoroMotionData, options, thoroMotion;
-
-		if (response.isError()) {
-			alert("Error in query: " + response.getMessage() + " " + response.getDetailedMessage());
-			return;
-		}
-
-		// get the raw data from the query response
-		data = response.getDataTable();
-		
-		bris = Object.create(thorobase.BRISImportChartData);
-		raceCards = bris.parseAll(data);
-		raceCard = raceCards[0];
-		race = raceCard[0];
-		thoroMotionData = bris.createThoroMotionData(race);
-
-		thoroMotion = tmInit(document.getElementById('thoroMotion'));
-		
-		options = {};
-		options['width'] = 600;
-		options['height'] = 400;
-		
-		thoroMotion.tmDraw(thoromotionData, options);
 	}
 	
 };

@@ -1,8 +1,8 @@
-thorobase.BRISImportChartData = Object.create(thorobase.ThoroData);
+thorobase.thorodata.BRISImportChartData = Object.create(thorobase.thorodata.Provider);
 
 // the config object represents the static data used by BRIS 
 // for the BRIS Import Chart Data files
-thorobase.BRISImportChartData.config = {
+thorobase.thorodata.BRISImportChartData.config = {
 
 	surfaces: {
 		"D": "Dirt",
@@ -109,7 +109,7 @@ thorobase.BRISImportChartData.config = {
 	],
 	blinkeredFlag: "b",
 	// these arrays contain the column numbers related to just 
-	// thorobase.RaceCard, thorobase.Race and thorobase.Performance data respectively
+	// thorobase.thorodata.RaceCard, thorobase.thorodata.Race and thorobase.thorodata.Performance data respectively
 	raceCardCols: [0, 1],
 	raceCols: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 47],
 	perfCols: [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46]
@@ -118,20 +118,20 @@ thorobase.BRISImportChartData.config = {
 
 /**
  * Parse the BRIS Import Chart Data, contained within the Google Visualization DataTable object,
- * into an array of thorobase.RaceCard objects
+ * into an array of thorobase.thorodata.RaceCard objects
  */
-thorobase.BRISImportChartData.parseRaceCards = function (/* google.visualization.DataTable */ data) {
+thorobase.thorodata.BRISImportChartData.parseRaceCards = function (/* google.visualization.DataTable */ data) {
 	var raceCards, raceCard, BRISImportChartDataRaceCards, raceCardIndex, raceDateCYMD;
 
-	// group the data by the columns relating just to thorobase.RaceCard data
+	// group the data by the columns relating just to thorobase.thorodata.RaceCard data
 	raceCards = google.visualization.data.group(data, this.config.raceCardCols, []);
 
 	BRISImportChartDataRaceCards = [];
 	
-	// for each race card, create a thorobase.RaceCard object, populate the data fields
+	// for each race card, create a thorobase.thorodata.RaceCard object, populate the data fields
 	// and add it to the BRISImportChartDataRaceCards array
 	for (raceCardIndex = 0; raceCardIndex < raceCards.getNumberOfRows(); raceCardIndex += 1) {
-		raceCard = Object.create(thorobase.RaceCard);
+		raceCard = Object.create(thorobase.thorodata.RaceCard);
 				
 		raceCard.track = raceCards.getFormattedValue(raceCardIndex, 0) || null;
 		
@@ -151,9 +151,9 @@ thorobase.BRISImportChartData.parseRaceCards = function (/* google.visualization
 
 /**
  * Parse the BRIS Import Chart Data, contained within the Google Visualization DataTable object, 
- * of the selected thorobase.RaceCard into an array of thorobase.Race objects
+ * of the selected thorobase.thorodata.RaceCard into an array of thorobase.thorodata.Race objects
  */
-thorobase.BRISImportChartData.parseRaces = function (/* google.visualization.DataTable */data, /* thorobase.RaceCard */ raceCard) {
+thorobase.thorodata.BRISImportChartData.parseRaces = function (/* google.visualization.DataTable */data, /* thorobase.thorodata.RaceCard */ raceCard) {
 	var raceCardView, raceCardRaces, races, raceIndex, race, raceRunDateCYMD, distanceVal, surfaceCode, raceTypeCode, raceGradeCode, ageSexRestrDesc, ageSexRestrCode, raceAgeSexRestrArray, racePointsOfFractionals, fractionalsIndex, fractional;
 	
 	raceCardView = new google.visualization.DataView(data);
@@ -171,10 +171,10 @@ thorobase.BRISImportChartData.parseRaces = function (/* google.visualization.Dat
 		
 	races = [];
 	
-	// for each race, create a thorobase.Race object, populate the data fields
+	// for each race, create a thorobase.thorodata.Race object, populate the data fields
 	// and add it to the races array
 	for (raceIndex = 0; raceIndex < raceCardRaces.getNumberOfRows(); raceIndex += 1) {
-		race = Object.create(thorobase.Race);
+		race = Object.create(thorobase.thorodata.Race);
 		
 		race.raceTrack = raceCardRaces.getValue(raceIndex, 0);
 		
@@ -278,9 +278,9 @@ thorobase.BRISImportChartData.parseRaces = function (/* google.visualization.Dat
 
 /**
  * Parse the BRIS Import Chart Data, contained within the Google Visualization DataTable object, 
- * of the selected thorobase.Race into an array of thorobase.Performance objects
+ * of the selected thorobase.thorodata.Race into an array of thorobase.thorodata.Performance objects
  */
-thorobase.BRISImportChartData.parsePerformances = function (/* google.visualization.DataTable */ data, /* thorobase.Race */ race) {
+thorobase.thorodata.BRISImportChartData.parsePerformances = function (/* google.visualization.DataTable */ data, /* thorobase.thorodata.Race */ race) {
 	var raceView, perfCols, racePerfs, performances, perfIndex, perf, racePointsOfCall, callPosIndex, callPos;
 
 	// create a DataView on all the race data and filter it to just the race selected
@@ -300,9 +300,9 @@ thorobase.BRISImportChartData.parsePerformances = function (/* google.visualizat
 	
 	performances = [];
 	
-	// for each performance, create a thorobase.Performance object, populate it with the data
+	// for each performance, create a thorobase.thorodata.Performance object, populate it with the data
 	for (perfIndex = 0; perfIndex < racePerfs.getNumberOfRows(); perfIndex += 1) {
-		perf = Object.create(thorobase.Performance);
+		perf = Object.create(thorobase.thorodata.Performance);
 		
 		perf.pp = racePerfs.getValue(perfIndex, 0) || null;
 		
@@ -388,45 +388,6 @@ thorobase.BRISImportChartData.parsePerformances = function (/* google.visualizat
 
 };
 
-thorobase.BRISImportChartData.createThoroMotionData = function (/* thorobase.Race */ race) {
-	var thoroMotionData, numRunners, startRowIndex, performance, startDist = 10000, railPosFlag = -1, callPosIndex, perfCallPos, furlongYards = 220;
-
-	thoroMotionData = new google.visualization.DataTable();
-	thoroMotionData.addColumn('string', 'Horse Name', 'horseName');		// horse name
-	thoroMotionData.addColumn('number', 'Furlongs', 'furlongs');		// use integer (years) to simulate furlongs due to 1901 date restriction
-	thoroMotionData.addColumn('number', 'Lengths Behind', 'lengths');	// position (in lengths) versus the leader
-	thoroMotionData.addColumn('number', 'Wide', 'wide');				// if available, how wide from rail, otherwise PP value
-	thoroMotionData.addColumn('number', 'PP', 'pp');					// post position
-	thoroMotionData.addColumn('number', 'Odds', 'odds');				// horse odds to $1
+thorobase.thorodata.BRISImportChartData.createThoroMotionData = function (/* thorobase.thorodata.Race */ race) {
 	
-	numRunners = race.performances.length;
-	
-	// we need to create the first rows to represent the horses in the starting gate about to race		
-	for (startRowIndex = 0; startRowIndex < numRunners; startRowIndex += 1) {
-		performance = race.performances[startRowIndex];
-		
-		thoroMotionData.addRow([
-			performance.horseName, 				// horse name
-			startDist,							// 0 furlongs travelled*
-			0, 									// all level as it's the start
-			(railPosFlag * performance.pp),		// use PP for wide value as in the gate
-			performance.pp,						// post position
-			performance.odds					// horse odds to $1
-		]);
-			
-		for (callPosIndex = 0; callPosIndex < performance.callPositions.length; callPosIndex += 1) {
-			perfCallPos = performance.callPositions[callPosIndex];
-			
-			thoroMotionData.addRow([
-				performance.horseName,								// horse name 
-				startDist + (perfCallPos.pocDist / furlongYards), 	// furlongs travelled at point of call*
-				(railPosFlag * perfCallPos.pocLengths), 			// lengths behind the leader at point of call
-				(railPosFlag * perfCallPos.pocWide),				// width from rail at this point of call
-				performance.pp,										// post position
-				performance.odds									// horse odds to $1
-			]);
-		}
-	}
-	
-	return thoroMotionData;
 };
