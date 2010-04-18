@@ -1,0 +1,13 @@
+thoroMotion is the multi-dimensional visualization module of the thorobase API. 
+
+thoroMotion has a dependency on the thoroData module.
+
+thoroMotion uses the Google Visualization API's Motion Chart package with a defined DataTable structure to create dynamic visualizations of official horse racing results chart data.
+
+thorobase.ThoroMotion.tmChart
+
+thorobase.ThoroMotion.tmInit
+
+thorobase.ThoroMotion.tmDraw
+
+thorobase.ThoroMotion.createThoroMotionData
