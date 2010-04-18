@@ -388,6 +388,26 @@ thorobase.thorodata.BRISImportChartData.parsePerformances = function (/* google.
 
 };
 
-thorobase.thorodata.BRISImportChartData.createThoroMotionData = function (/* thorobase.thorodata.Race */ race) {
+thorobase.thorodata.BRISImportChartData.getRawData = function (/* String */ dataSourceUrl, /* String */ queryString, /* function */ callBack) {
+	var query;
+
+	query = new google.visualization.Query(dataSourceUrl);
+
+	if (queryString) {
+		query.setQuery(queryString);
+	} else {
+		query.setQuery("SELECT *");
+	}
+
+	query.send(callBack);
+},
+
+thorobase.thorodata.BRISImportChartData._setRawData = function (/* google.visualization.QueryResponse */ response) {
+	if (response.isError()) {
+		alert("Error in query: " + response.getMessage() + " " + response.getDetailedMessage());
+		return;
+	}
 	
-};
+	// get the raw data from the query response
+	this.rawData = response.getDataTable();
+}
