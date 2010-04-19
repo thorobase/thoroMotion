@@ -1,0 +1,269 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>thoroMotion Tests</title>
+	<meta name="generator" content="TextMate http://macromates.com/">
+	<meta name="author" content="Robin Howlett">
+
+	<style type="text/css">
+	
+		/* margin and padding on body element can introduce errors in determining
+		 * element position and are not recommended; we turn them off as a foundation for YUI
+		 * CSS treatments.
+		 */
+		body {
+			margin:0;
+			padding:0;
+		}
+		
+	</style>
+	
+	<!-- YUI 3.1.0 -->
+	<!-- YUI CSS -->
+	<link rel="stylesheet" type="text/css" href="../util/yui/cssfonts/fonts-min.css" /> 
+	<link rel="stylesheet" type="text/css" href="../util/yui/widget/assets/skins/sam/widget.css">
+	<link rel="stylesheet" type="text/css" href="../util/yui/console/assets/skins/sam/console.css">
+	<link rel="stylesheet" type="text/css" href="../util/yui/test/assets/skins/sam/test.css">
+	<!-- YUI JS -->
+	<script type="text/javascript" src="../util/yui/yui/yui-base-min.js"></script>
+	<script type="text/javascript" src="../util/yui/oop/oop-min.js"></script>
+	<script type="text/javascript" src="../util/yui/yui/yui-later-min.js"></script>
+	<script type="text/javascript" src="../util/yui/event-custom/event-custom-min.js"></script>
+	<script type="text/javascript" src="../util/yui/event/event-base-min.js"></script>
+	<script type="text/javascript" src="../util/yui/pluginhost/pluginhost-min.js"></script>
+	<script type="text/javascript" src="../util/yui/dom/dom-min.js"></script>
+	<script type="text/javascript" src="../util/yui/node/node-min.js"></script>
+	<script type="text/javascript" src="../util/yui/event/event-delegate-min.js"></script>
+	<script type="text/javascript" src="../util/yui/intl/intl-min.js"></script>
+	<script type="text/javascript" src="../util/yui/console/lang/console.js"></script>
+	<script type="text/javascript" src="../util/yui/yui/yui-log-min.js"></script>
+	<script type="text/javascript" src="../util/yui/attribute/attribute-min.js"></script>
+	<script type="text/javascript" src="../util/yui/event/event-focus-min.js"></script>
+	<script type="text/javascript" src="../util/yui/base/base-min.js"></script>
+	<script type="text/javascript" src="../util/yui/classnamemanager/classnamemanager-min.js"></script>
+	<script type="text/javascript" src="../util/yui/widget/widget-min.js"></script>
+	<script type="text/javascript" src="../util/yui/dump/dump-min.js"></script>
+	<script type="text/javascript" src="../util/yui/substitute/substitute-min.js"></script>
+	<script type="text/javascript" src="../util/yui/console/console-min.js"></script>
+	<script type="text/javascript" src="../util/yui/json/json-min.js"></script>
+	<script type="text/javascript" src="../util/yui/event-simulate/event-simulate-min.js"></script>
+	<script type="text/javascript" src="../util/yui/test/test-min.js"></script>
+	
+	<!-- auto-loads the Google AJAX API, the Google Visualization API, and the Motion Chart package -->
+	<script type="text/javascript" src="../util/google/jsapi.js"></script>
+	
+	<!-- import thoroData, provider scripts, thoroMotion script, and sample data -->
+	<script type="text/javascript" src="thoroData.js"></script>
+	<script type="text/javascript" src="brisImportChartData.js"></script>
+	<script type="text/javascript" src="../src/thoroMotion.js"></script>
+	<script type="text/javascript" src="sample_brisImportChartData_racedata.js"></script>
+	<script type="text/javascript" src="sample_fusionTableThoroData.js"></script>
+	
+	<!--begin custom header content for this example--> 
+	<style type="text/css"> 
+		#testLogger {
+		    margin-bottom: 1em;
+		}
+
+		#testLogger .yui3-console .yui3-console-title {
+		    border: 0 none;
+		    color: #000;
+		    font-size: 13px;
+		    font-weight: bold;
+		    margin: 0;
+		    text-transform: none;
+		}
+		#testLogger .yui3-console .yui3-console-entry-meta {
+		    margin: 0;
+		}
+
+		.yui3-skin-sam .yui3-console-entry-pass .yui3-console-entry-cat {
+		    background: #070;
+		    color: #fff;
+		}
+	</style> 
+
+	<!--end custom header content for this example-->
+</head>
+<body class="yui3-skin-sam  yui-skin-sam">
+	
+	<!--BEGIN SOURCE CODE FOR EXAMPLE =============================== --> 
+	
+	<div id="testLogger"></div>
+	
+	<script type="text/javascript">
+		var Y;
+		
+		Y = YUI({ debug: true });
+
+		// Create new YUI instance, and populate it with the required modules
+		Y.use("node", "console", "test", function(Y) {
+		
+			Y.namespace("thorobase.thoromotion.test");
+		
+			Y.thorobase.thoromotion.test.ThoroMotionTestCase = new Y.Test.Case({
+			
+				// name of the test case
+				name: "thoroMotion Tests",
+			
+				//---------------------------------------------------------------------
+		        // setUp and tearDown methods
+		        //---------------------------------------------------------------------
+	
+				/*
+		         * Sets up data that is needed by each test.
+		         */
+		        setUp: function () {
+		            this.data = new google.visualization.DataTable(brisImportChartDataSample, 0.6);
+		        },
+	
+		        /*
+		         * Cleans up everything that was created by setUp().
+		         */
+		        tearDown: function () {
+		            delete this.data;
+		        },
+			
+				//---------------------------------------------------------------------
+		        // Test methods
+		        //---------------------------------------------------------------------
+		
+				testCreateThoroMotionData: function () {
+					var Assert = Y.Assert, bris, raceCard, race, thoroMotion, thoroMotionData;
+
+					bris = Object.create(thorobase.thorodata.BRISImportChartData);
+					raceCard = bris.parseRaceCards(this.data)[0];
+					raceCard.races = bris.parseRaces(this.data, raceCard);
+					race = raceCard.races[10];
+					race.performances = bris.parsePerformances(this.data, race);
+
+					thoroMotion = Object.create(thorobase.ThoroMotion);
+					thoroMotionData = thoroMotion.createThoroMotionData(race);
+
+					Assert.isObject(thoroMotionData);
+					Assert.areEqual(42, thoroMotionData.getNumberOfRows(), "thoroMotionData.getNumberOfRows() should return 42");
+
+					Assert.areEqual("PERCY HOPE", thoroMotionData.getValue(0,0), "thoroMotionData.getValue(0,0) should return 'PERCY HOPE");
+					Assert.areEqual(10000, thoroMotionData.getValue(0,1), "thoroMotionData.getValue(0,1) should return 10000");
+					Assert.areEqual(0, thoroMotionData.getValue(0,2), "thoroMotionData.getValue(0,2) should return 0");
+					Assert.areEqual(-1, thoroMotionData.getValue(0,3), "thoroMotionData.getValue(0,3) should return -1");
+					Assert.areEqual(1, thoroMotionData.getValue(0,4), "thoroMotionData.getValue(0,4) should return 1");
+					Assert.areEqual(7.5, thoroMotionData.getValue(0,5), "thoroMotionData.getValue(0,5) should return 7.5");
+
+					Assert.areEqual("HOLIDAY THUNDER", thoroMotionData.getValue(20,0), "thoroMotionData.getValue(20,0) should return 'HOLIDAY THUNDER");
+					Assert.areEqual(10008.5, thoroMotionData.getValue(20,1), "thoroMotionData.getValue(20,1) should return 10008.5");
+					Assert.areEqual(-1.25, thoroMotionData.getValue(20,2), "thoroMotionData.getValue(20,2) should return -1.25");
+					Assert.areEqual(-3, thoroMotionData.getValue(20,3), "thoroMotionData.getValue(20,3) should return -3");
+					Assert.areEqual(3, thoroMotionData.getValue(20,4), "thoroMotionData.getValue(20,4) should return 3");
+					Assert.areEqual(1.2, thoroMotionData.getValue(20,5), "thoroMotionData.getValue(20,5) should return 1.2");
+
+				},
+				
+				testCreateThoroMotionLocal: function () {
+					var Assert = Y.Assert, bris, raceCard, race, thoroMotion, thoroMotionData, options, vizNode;
+					
+					bris = Object.create(thorobase.thorodata.BRISImportChartData);
+					raceCard = bris.parseRaceCards(this.data)[0];
+					raceCard.races = bris.parseRaces(this.data, raceCard);
+					race = raceCard.races[10];
+					race.performances = bris.parsePerformances(this.data, race);
+					
+					thoroMotion = Object.create(thorobase.ThoroMotion);
+					thoroMotionData = thoroMotion.createThoroMotionData(race);
+										
+					thoroMotion.tmInit(document.getElementById('thoroMotionLocal'));
+
+					options = {};
+
+					thoroMotion.tmDraw(thoroMotionData, options);
+					
+					vizNode = Y.one("#thoroMotionLocal").get('children').item(0);
+					
+					Assert.areEqual("google.visualiation.MotionChart-0_swf", vizNode.get('name'), 
+							"The thoroMotion DOM Node should now contain a MotionChart SWF embed object");
+				},
+				
+				testCreateThoroMotionRemote: function () {
+					var Assert = Y.Assert, bris, raceCards, race, thoroMotion, thoroMotionData, options, vizNode;
+					
+					bris = Object.create(thorobase.thorodata.BRISImportChartData);
+					bris.getRawData(
+						"http://spreadsheets.google.com/tq?key=0AiOsxY8r6SSUdHp0cmJsTkdqYUhUQjdLcm5GNm91WGc",
+						"SELECT * WHERE A <> \"\"",
+						(function (bris) {
+							return function (response) {
+								if (response.isError()) {
+									alert("Error in query: " + response.getMessage() + " " + response.getDetailedMessage());
+									return;
+								}
+
+								// get the raw data from the query response
+								bris.rawData = response.getDataTable();
+								
+								raceCards = bris.parseAll(bris.rawData);
+
+								race = (raceCards[0]).races[0];
+
+								thoroMotion = Object.create(thorobase.ThoroMotion);
+								thoroMotionData = thoroMotion.createThoroMotionData(race);
+
+								thoroMotion.tmInit(document.getElementById('thoroMotion'));
+								options = {};
+								thoroMotion.tmDraw(thoroMotionData, options);
+							}
+						}) (bris)
+					);
+					
+					this.wait(function () {
+						vizNode = Y.one("#thoroMotion").get('children').item(0);
+
+						Assert.areEqual("google.visualiation.MotionChart-1_swf", vizNode.get('name'), 
+								"The thoroMotion DOM Node should now contain a MotionChart SWF embed object");
+					 }, 10000);
+				},
+				
+				testAugmentThoroMotionData: function() {
+					var Assert = Y.Assert;
+					
+					
+				}
+	
+			});
+		
+			Y.thorobase.thoromotion.test.ThoroMotionSuite = new Y.Test.Suite("thoroMotion Suite");
+			Y.thorobase.thoromotion.test.ThoroMotionSuite.add(Y.thorobase.thoromotion.test.ThoroMotionTestCase);
+		
+			// create the console
+			var runner = new Y.Console({
+				strings: {
+					title: "thoroMotion tests",
+					pause: "Pause",
+					clear: "Clear",
+					collapse: "Collapse"
+				},
+				width: '800px',
+				height: '600px',
+				newestOnTop: false,
+				style: 'block' // to anchor in the example content
+			});
+		
+			runner.render('#testLogger');
+		
+			Y.Test.Runner.add(Y.thorobase.thoromotion.test.ThoroMotionSuite);
+		
+			// run the tests
+			Y.Test.Runner.run();
+		
+		});
+		
+	</script> 
+
+	<!--END SOURCE CODE FOR EXAMPLE =============================== -->
+	<div id="thoroMotionLocal"></div>
+	<div id="thoroMotion"></div>
+
+</body>
+</html>
